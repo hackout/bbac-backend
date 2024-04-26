@@ -1,0 +1,47 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('commit_product_items', function (Blueprint $table) {
+            $table->uuid('id')->primary()->unique()->comment("主键");
+            $table->uuid('unique_id')->nullable()->comment("唯一标识");
+            $table->uuid('commit_product_id')->nullable()->comment('在线考核(历史)ID');
+            $table->uuid('part_id')->nullable()->comment('零件ID');
+            $table->string("name")->nullable()->comment("测量项");
+            $table->string("content")->nullable()->comment("内容");
+            $table->string("standard")->nullable()->comment("操作描述");
+            $table->string("eye")->nullable()->comment("目视检查");
+            $table->integer("number")->default(0)->comment('数量');
+            $table->decimal("lower_limit")->default(0)->comment('测量下限');
+            $table->decimal("upper_limit")->default(0)->comment('测量上限');
+            $table->string("unit")->nullable()->comment('测量单位');
+            $table->boolean('is_scan')->default(false)->comment('是否扫码');
+            $table->boolean('is_camera')->default(false)->comment('是否拍照');
+            $table->longText('scan')->nullable()->comment('扫码说明');
+            $table->longText('camera')->nullable()->comment('拍照说明');
+            $table->decimal("process")->default(0)->comment('进度');
+            $table->tinyInteger('type')->default(0)->comment("考核项类型");
+            $table->integer('sort_order')->default(0)->comment('序号');
+            $table->json('options')->nullable()->comment('附加选项');
+            $table->timestamps();
+            $table->comment = "产品考核-考核项列表";
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('commit_product_items');
+    }
+};

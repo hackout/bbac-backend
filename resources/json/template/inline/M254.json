@@ -1,0 +1,999 @@
+{
+    "info": {
+        "title": "M254产品审核记录表",
+        "totalColumns": 36,
+        "totalRows": 24,
+        "cellWidth": 0.51,
+        "rowHeight": 0.88,
+        "fontSize": 8,
+        "align": "center",
+        "valign": "middle",
+        "fontWeight": 200,
+        "color": "#000000",
+        "borderStyle": "thin",
+        "borderWidth": 1,
+        "borderColor": "#000000",
+        "backgroundColor": "#FFFFFF",
+        "emptyBackground": "#FFFFFF",
+        "emptyBorder": "#CCCCCC"
+    },
+    "data": [
+        [
+            {
+                "value": "/assets/imgs/benz.png",
+                "type": "image",
+                "height": 1.83,
+                "col": 9
+            },
+            {
+                "value": "M254产品审核记录表\nM254 Product Audit Recorded",
+                "type": "label",
+                "height": 1.83,
+                "col": 27,
+                "fontWeight": 600,
+                "fontSize": 16
+            }
+        ],
+        [
+            {
+                "value": "发动机信息/Engine Data",
+                "type": "label",
+                "col": 36,
+                "fontWeight": 600,
+                "fontSize": 9
+            }
+        ],
+        [
+            {
+                "value": "型号/Model",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "engine",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "发动机号/Engine No.",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "engine_number",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            }
+        ],
+        [
+            {
+                "value": "生产线/Assembly line",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "line",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "生产阶段/Phase",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "stage",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            }
+        ],
+        [
+            {
+                "value": "装配日期/Assembly Date",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "assembly_at",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "热试日期/QC Date",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "test_at",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            }
+        ],
+        [
+            {
+                "value": "接机日期/Audit Beginning",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "考核员/Auditor",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            },
+            {
+                "value": "author_name",
+                "type": "variable",
+                "col": 9,
+                "fontSize": 9,
+                "align": "left"
+            }
+        ],
+        [
+            {
+                "value": "缺陷判定/Finding",
+                "type": "label",
+                "col": 36,
+                "fontWeight": 600,
+                "fontSize": 9
+            }
+        ],
+        [
+            {
+                "value": "位置/Location",
+                "type": "label",
+                "col": 7,
+                "fontSize": 9
+            },
+            {
+                "value": "描述/Description",
+                "type": "label",
+                "col": 22,
+                "fontSize": 9
+            },
+            {
+                "value": "缺陷等级/Defect Class",
+                "type": "label",
+                "col": 7,
+                "fontSize": 9
+            }
+        ],
+        [
+            {
+                "value": "question",
+                "type": "variable",
+                "col": 7,
+                "fontSize": 9
+            },
+            {
+                "value": "description",
+                "type": "variable",
+                "col": 22,
+                "fontSize": 9
+            },
+            {
+                "value": "defect_level",
+                "type": "variable",
+                "col": 7,
+                "fontSize": 9
+            }
+        ],
+        [
+            {
+                "value": "缸压泄露率/Compression Loss rate\n参考值/Ref. Value：0-10%",
+                "type": "label",
+                "col": 7,
+                "fontSize": 8,
+                "height": 1.61
+            },
+            {
+                "value": "火花塞间隙/Spark Plug Gap (mm)\n参考值/Ref. Value：0.65-0.75",
+                "type": "label",
+                "col": 7,
+                "fontSize": 8,
+                "height": 1.61
+            },
+            {
+                "value": "连杆轴向间隙/Con-rod Axial Clearance  (mm)\n参考值/Ref. Value ：0.05-0.31",
+                "type": "label",
+                "col": 7,
+                "fontSize": 8,
+                "height": 1.61
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000",
+                "borderLeftColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderTopColor": "#000000"
+            }
+        ],
+        [
+            {
+                "value": "Cyl. 1",
+                "type": "label",
+                "col": 2,
+                "fontSize": 8
+            },
+            {
+                "col": 5,
+                "fontSize": 8
+            },
+            {
+                "value": "Cyl. 1",
+                "type": "label",
+                "col": 2,
+                "fontSize": 8
+            },
+            {
+                "col": 5,
+                "fontSize": 8
+            },
+            {
+                "value": "Cyl. 1",
+                "type": "label",
+                "col": 2,
+                "fontSize": 8
+            },
+            {
+                "col": 5,
+                "fontSize": 8
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderLeftColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            }
+        ],
+        [
+            {
+                "value": "Cyl. 2",
+                "type": "label",
+                "col": 2,
+                "fontSize": 8
+            },
+            {
+                "col": 5,
+                "fontSize": 8
+            },
+            {
+                "value": "Cyl. 2",
+                "type": "label",
+                "col": 2,
+                "fontSize": 8
+            },
+            {
+                "col": 5,
+                "fontSize": 8
+            },
+            {
+                "value": "Cyl. 2",
+                "type": "label",
+                "col": 2,
+                "fontSize": 8
+            },
+            {
+                "col": 5,
+                "fontSize": 8
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderLeftColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            }
+        ],
+        [
+            {
+                "value": "Cyl. 3",
+                "type": "label",
+                "col": 2
+            },
+            {
+                "col": 5
+            },
+            {
+                "value": "Cyl. 3",
+                "type": "label",
+                "col": 2
+            },
+            {
+                "col": 5
+            },
+            {
+                "value": "Cyl. 3",
+                "type": "label",
+                "col": 2
+            },
+            {
+                "col": 5
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderLeftColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC"
+            }
+        ],
+        [
+            {
+                "value": "Cyl. 4",
+                "type": "label",
+                "col": 2
+            },
+            {
+                "col": 5
+            },
+            {
+                "value": "Cyl. 4",
+                "type": "label",
+                "col": 2
+            },
+            {
+                "col": 5
+            },
+            {
+                "value": "Cyl. 4",
+                "type": "label",
+                "col": 2
+            },
+            {
+                "col": 5
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000"
+            }
+        ],
+        [
+            {
+                "value": "间隙测量/Axial Clearance  (mm)",
+                "type": "label",
+                "col": 36
+            }
+        ],
+        [
+            {
+                "value": "参考值/Ref. Value",
+                "type": "label",
+                "col": 6,
+                "height": 1.14
+            },
+            {
+                "value": "进气凸轮轴轴向间隙/Intake Camshaft\n0.05-0.20",
+                "type": "label",
+                "col": 8,
+                "height": 1.14
+            },
+            {
+                "value": "排气凸轮轴轴向间隙/Exhaust Camshaft\n0.05-0.20",
+                "type": "label",
+                "col": 8,
+                "height": 1.14
+            },
+            {
+                "value": "曲轴轴轴向间隙/Crankshaft\n0.12-0.27",
+                "type": "label",
+                "col": 8,
+                "height": 1.14
+            },
+            {
+                "value": "平衡轴转动间隙\nLanchester Rotational\n0.075-0.175",
+                "type": "label",
+                "col": 6,
+                "height": 1.14
+            }
+        ],
+        [
+            {
+                "value": "实测值/Actual Value",
+                "col": 6
+            },
+            {
+                "col": 8
+            },
+            {
+                "col": 8
+            },
+            {
+                "col": 8
+            },
+            {
+                "col": 6
+            }
+        ],
+        [
+            {
+                "value": "目视检查/visual check",
+                "type": "label",
+                "col": 21,
+                "fontSize": 9,
+                "align": "left",
+                "fontWeight": 600,
+                "borderRightColor": "#CCCCCC"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            },
+            {
+                "type": "empty",
+                "borderColor": "#CCCCCC",
+                "borderBottomColor": "#000000",
+                "borderTopColor": "#000000"
+            }
+        ],
+        [
+            {
+                "value": "曲轴轴瓦配瓦是否正确\n/CS shell mark right or not",
+                "type": "label",
+                "col": 15,
+                "fontSize": 9,
+                "height": 1.72
+            },
+            {
+                "value": "连杆配重是否一致\n/Con-rod weight level coincident",
+                "type": "label",
+                "col": 12,
+                "fontSize": 9,
+                "height": 1.72
+            },
+            {
+                "value": "平衡轴与曲轴标记点是否正确\n/The lanchester and crankshaft mark points are correct position",
+                "type": "label",
+                "col": 9,
+                "fontSize": 9,
+                "height": 1.72
+            }
+        ],
+        [
+            {
+                "col": 15,
+                "fontSize": 9
+            },
+            {
+                "col": 12,
+                "fontSize": 9
+            },
+            {
+                "col": 9,
+                "fontSize": 9
+            }
+        ],
+        [
+            {
+                "value": "备注/Remark",
+                "type": "label",
+                "col": 36,
+                "fontSize": 9,
+                "fontWeight": 600
+            }
+        ],
+        [
+            {
+                "value": "remark",
+                "type": "variable",
+                "col": 36,
+                "fontSize": 9,
+                "align": "left"
+            }
+        ],
+        [
+            {
+                "value": "编制/Edit",
+                "type": "label",
+                "col": 5,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "user_name",
+                "type": "variable",
+                "col": 7,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "批准/Approval",
+                "type": "label",
+                "col": 5,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "col": 7,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "文件号/Doc. No.",
+                "type": "label",
+                "col": 5,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "E1601-R1012",
+                "col": 7,
+                "height": 0.53,
+                "align": "left"
+            }
+        ],
+        [
+            {
+                "value": "审核/Check",
+                "type": "label",
+                "col": 5,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "col": 7,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "日期/Date",
+                "type": "label",
+                "col": 5,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "created_at",
+                "type": "variable",
+                "col": 7,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "版本/Version",
+                "type": "label",
+                "col": 5,
+                "height": 0.53,
+                "align": "left"
+            },
+            {
+                "value": "version",
+                "type": "variable",
+                "col": 7,
+                "height": 0.53,
+                "align": "left"
+            }
+        ]
+    ]
+}

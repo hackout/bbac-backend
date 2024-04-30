@@ -75,7 +75,7 @@ class TaskCronController extends Controller
         $rules = [
             'assembly_id' => 'required|exists:assemblies,id',
             'name' => 'required|max:100',
-            'examine_id' => 'required|exists:examines,id',
+            'examine_id' => 'required',
             'type' => 'required|integer',
             'plant' => 'required|integer',
             'line' => 'required|integer',

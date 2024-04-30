@@ -35,6 +35,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class ExamineVehicle extends Model
 {
     use HasFactory, PrimaryKeyUuidTrait;
+    
+    /**
+     * 待提交
+     */
+    const STATUS_DRAFT = 0;
+
+    /**
+     * 待审核
+     */
+    const STATUS_PENDING = 1;
+
+    /**
+     * 审核通过
+     */
+    const STATUS_SUCCESS = 2;
+
+    /**
+     * 拒绝
+     */
+    const STATUS_REJECT = 3;
 
     protected $fillable = [
         'id',
@@ -52,7 +72,7 @@ class ExamineVehicle extends Model
 
     public $casts = [
         'engine' => 'integer',
-        'period' => 'decimal',
+        'period' => 'decimal:2',
         'is_valid' => 'boolean',
         'status' => 'integer',
         'created_at' => 'datetime',

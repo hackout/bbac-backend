@@ -12,10 +12,11 @@ use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\Backend\PartController;
 use App\Http\Controllers\Backend\IssueController;
+use App\Http\Controllers\Backend\CustomController;
 use App\Http\Controllers\Backend\NoticeController;
-use App\Http\Controllers\Backend\CommitController;
 use App\Http\Controllers\Backend\TorqueController;
 use App\Http\Controllers\Backend\UploadController;
+use App\Http\Controllers\Backend\VehicleController;
 use App\Http\Controllers\Backend\ProductController;
 use App\Http\Controllers\Backend\UserLogController;
 use App\Http\Controllers\Backend\ExamineController;
@@ -25,13 +26,17 @@ use App\Http\Controllers\Backend\DictItemController;
 use App\Http\Controllers\Backend\TaskCronController;
 use App\Http\Controllers\Backend\DocumentController;
 use App\Http\Controllers\Backend\TorqueItemController;
-use App\Http\Controllers\Backend\CommitItemController;
 use App\Http\Controllers\Backend\DepartmentController;
 use App\Http\Controllers\Backend\BirthdayCardController;
 use App\Http\Controllers\Backend\SystemConfigController;
+use App\Http\Controllers\Backend\CommitInlineController;
 use App\Http\Controllers\Backend\CommitApproveController;
 use App\Http\Controllers\Backend\LocalePackageController;
-use App\Http\Controllers\Backend\CommitItemOptionController;
+use App\Http\Controllers\Backend\CommitVehicleController;
+use App\Http\Controllers\Backend\CommitProductController;
+use App\Http\Controllers\Backend\CommitInlineItemController;
+use App\Http\Controllers\Backend\CommitProductItemController;
+use App\Http\Controllers\Backend\CommitVehicleItemController;
 use App\Http\Controllers\Backend\TorqueChangeRecordController;
 
 
@@ -140,6 +145,8 @@ Route::middleware("auth")->group(function () {
         Route::group(['prefix' => '/system'], function () {
             Route::get('/', [SystemConfigController::class, 'index'])->name('system_config.index');
             Route::post('/', [SystemConfigController::class, 'index'])->name('system_config.index');
+            Route::get('/cache', [SystemConfigController::class, 'cache'])->name('system_config.cache');
+            Route::post('/cache', [SystemConfigController::class, 'cacheClear'])->name('system_config.cache_clear');
         });
 
         //登录日志
@@ -277,45 +284,90 @@ Route::middleware("auth")->group(function () {
         Route::group(['prefix' => '/examine'], function () {
             Route::get('/', [ExamineController::class, 'index'])->name("examine.index");
             Route::get('/list', [ExamineController::class, 'list'])->name("examine.list");
-            Route::get('/option', [ExamineController::class, 'option'])->name("examine.option");
-            Route::post('/export', [ExamineController::class, 'export'])->name("examine.export");
-            Route::get('/{id}', [ExamineController::class, 'detail'])->name('examine.detail')->where(['id' => UUID_REGEX]);
-            Route::delete('/{id}', [ExamineController::class, 'delete'])->name('examine.delete')->where(['id' => UUID_REGEX]);
-            Route::get('/inline', [CommitController::class, 'inline'])->name("commit.inline");
-            Route::get('/product', [CommitController::class, 'product'])->name("commit.product");
-            Route::get('/service', [CommitController::class, 'service'])->name("commit.service");
+            Route::get('/option/{type}', [ExamineController::class, 'option'])->name("examine.option")->where(['type' => 'inline|product|vehicle']);
+            Route::delete('/{id}/{type}', [ExamineController::class, 'delete'])->name('examine.delete')->where(['id' => UUID_REGEX, 'type' => 'inline|product|vehicle']);
         });
 
         //考核历史版本
         Route::group(['prefix' => '/commit'], function () {
-            Route::get('/option', [CommitController::class, 'option'])->name("commit.option");
-            Route::get('/list/{type?}', [CommitController::class, 'list'])->name("commit.list")->where('type', 'inline|product|service');
-            Route::post('/{type}', [CommitController::class, 'create'])->name('commit.create')->where('type', 'inline|product|service');
-            Route::get('/{id}', [CommitController::class, 'detail'])->name('commit.detail')->where(['id' => UUID_REGEX]);
-            Route::get('/{id}/change', [CommitController::class, 'changed'])->name('commit.changed')->where(['id' => UUID_REGEX]);
-            Route::put('/{id}', [CommitController::class, 'update'])->name('commit.update')->where(['id' => UUID_REGEX]);
-            Route::post('/{id}', [CommitController::class, 'approve'])->name('commit.approve')->where(['id' => UUID_REGEX]);
-            Route::delete('/{id}', [CommitController::class, 'delete'])->name('commit.delete')->where(['id' => UUID_REGEX]);
-            Route::post('/import/{type}', [CommitController::class, 'import'])->name('commit.import')->where('type', 'inline|product|service');
-            Route::get('/template/{type}', [CommitController::class, 'template'])->name('commit.template')->where('type', 'inline|product|service');
 
             //送审批
-            Route::post('/approve/{id}', [CommitApproveController::class, 'create'])->name('commit_approve.create')->where(['id' => UUID_REGEX]);
+            Route::post('/approve', [CommitApproveController::class, 'create'])->name('commit_approve.create');
 
-            //考核项
-            Route::group(['prefix' => '/items'], function () {
-                Route::get('/{id}', [CommitItemController::class, 'list'])->name('commit_item.list')->where(['id' => UUID_REGEX]);
-                Route::post('/{id}', [CommitItemController::class, 'create'])->name('commit_item.create')->where(['id' => UUID_REGEX]);
-                Route::post('/{id}/order', [CommitItemController::class, 'order'])->name('commit_item.order')->where(['id' => UUID_REGEX]);
-                Route::post('/{id}/upload', [CommitItemController::class, 'upload'])->name('commit_item.upload')->where(['id' => UUID_REGEX]);
-                Route::delete('/{id}/upload/{uuid}', [CommitItemController::class, 'uploadDelete'])->name('commit_item.upload_delete')->where(['id' => UUID_REGEX, 'uuid' => UUID_REGEX]);
-                Route::put('/{id}/{item_id}', [CommitItemController::class, 'update'])->name('commit_item.update')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
-                Route::delete('/{id}/{item_id}', [CommitItemController::class, 'delete'])->name('commit_item.delete')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+            //整车服务
+            Route::group(['prefix' => '/vehicle'], function () {
+                Route::get('/', [CommitVehicleController::class, 'index'])->name('commit_vehicle.index');
+                Route::get('/list', [CommitVehicleController::class, 'list'])->name('commit_vehicle.list');
+                Route::post('/', [CommitVehicleController::class, 'create'])->name('commit_vehicle.create');
+                Route::put('/{id}', [CommitVehicleController::class, 'update'])->name('commit_vehicle.update')->where(['id' => UUID_REGEX]);
+                Route::get('/{id}', [CommitVehicleController::class, 'detail'])->name('commit_vehicle.detail')->where(['id' => UUID_REGEX]);
+                Route::get('/{id}/changed', [CommitVehicleController::class, 'changed'])->name('commit_vehicle.changed')->where(['id' => UUID_REGEX]);
+                Route::post('/{id}', [CommitVehicleController::class, 'approve'])->name('commit_vehicle.approve')->where(['id' => UUID_REGEX]);
+                Route::delete('/{id}', [CommitVehicleController::class, 'delete'])->name('commit_vehicle.delete')->where(['id' => UUID_REGEX]);
+                Route::post('/import', [CommitVehicleController::class, 'import'])->name('commit_vehicle.import');
+                Route::get('/template', [CommitVehicleController::class, 'template'])->name('commit_vehicle.template');
+                Route::get('/option', [CommitVehicleController::class, 'option'])->name('commit_vehicle.option');
 
-                //实际测量项
-                Route::group(['prefix' => '/option'], function () {
-                    Route::get('/{id}/{item_id}', [CommitItemOptionController::class, 'list'])->name('commit_item_option.list')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
-                    Route::post('/{id}/{item_id}', [CommitItemOptionController::class, 'save'])->name('commit_item_option.save')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                //考核项
+                Route::group(['prefix' => '/item'], function () {
+                    Route::get('/{id}', [CommitVehicleItemController::class, 'list'])->name('commit_vehicle_item.list')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}', [CommitVehicleItemController::class, 'create'])->name('commit_vehicle_item.create')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}/order', [CommitVehicleItemController::class, 'order'])->name('commit_vehicle_item.order')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}/upload', [CommitVehicleItemController::class, 'upload'])->name('commit_vehicle_item.upload')->where(['id' => UUID_REGEX]);
+                    Route::put('/{id}/{item_id}', [CommitVehicleItemController::class, 'update'])->name('commit_vehicle_item.update')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                    Route::delete('/{id}/{item_id}', [CommitVehicleItemController::class, 'delete'])->name('commit_vehicle_item.delete')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                });
+            });
+
+            //在线考核
+            Route::group(['prefix' => '/inline'], function () {
+                Route::get('/', [CommitInlineController::class, 'index'])->name('commit_inline.index');
+                Route::get('/list', [CommitInlineController::class, 'list'])->name('commit_inline.list');
+                Route::post('/', [CommitInlineController::class, 'create'])->name('commit_inline.create');
+                Route::put('/{id}', [CommitInlineController::class, 'update'])->name('commit_inline.update')->where(['id' => UUID_REGEX]);
+                Route::get('/{id}', [CommitInlineController::class, 'detail'])->name('commit_inline.detail')->where(['id' => UUID_REGEX]);
+                Route::get('/{id}/changed', [CommitInlineController::class, 'changed'])->name('commit_inline.changed')->where(['id' => UUID_REGEX]);
+                Route::post('/{id}', [CommitInlineController::class, 'approve'])->name('commit_inline.approve')->where(['id' => UUID_REGEX]);
+                Route::delete('/{id}', [CommitInlineController::class, 'delete'])->name('commit_inline.delete')->where(['id' => UUID_REGEX]);
+                Route::post('/import', [CommitInlineController::class, 'import'])->name('commit_inline.import');
+                Route::get('/template', [CommitInlineController::class, 'template'])->name('commit_inline.template');
+                Route::get('/option', [CommitInlineController::class, 'option'])->name('commit_inline.option');
+
+                //考核项
+                Route::group(['prefix' => '/item'], function () {
+                    Route::get('/{id}', [CommitInlineItemController::class, 'list'])->name('commit_inline_item.list')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}', [CommitInlineItemController::class, 'create'])->name('commit_inline_item.create')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}/order', [CommitInlineItemController::class, 'order'])->name('commit_inline_item.order')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}/upload', [CommitInlineItemController::class, 'upload'])->name('commit_inline_item.upload')->where(['id' => UUID_REGEX]);
+                    Route::put('/{id}/{item_id}', [CommitInlineItemController::class, 'update'])->name('commit_inline_item.update')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                    Route::delete('/{id}/{item_id}', [CommitInlineItemController::class, 'delete'])->name('commit_inline_item.delete')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                    Route::post('/{id}/{item_id}', [CommitInlineItemController::class, 'option'])->name('commit_inline_item.option')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                });
+            });
+
+            //产品考核
+            Route::group(['prefix' => '/product'], function () {
+                Route::get('/', [CommitProductController::class, 'index'])->name('commit_product.index');
+                Route::get('/list', [CommitProductController::class, 'list'])->name('commit_product.list');
+                Route::post('/', [CommitProductController::class, 'create'])->name('commit_product.create');
+                Route::put('/{id}', [CommitProductController::class, 'update'])->name('commit_product.update')->where(['id' => UUID_REGEX]);
+                Route::get('/{id}', [CommitProductController::class, 'detail'])->name('commit_product.detail')->where(['id' => UUID_REGEX]);
+                Route::get('/{id}/changed', [CommitProductController::class, 'changed'])->name('commit_product.changed')->where(['id' => UUID_REGEX]);
+                Route::post('/{id}', [CommitProductController::class, 'approve'])->name('commit_product.approve')->where(['id' => UUID_REGEX]);
+                Route::delete('/{id}', [CommitProductController::class, 'delete'])->name('commit_product.delete')->where(['id' => UUID_REGEX]);
+                Route::post('/import', [CommitProductController::class, 'import'])->name('commit_product.import');
+                Route::get('/template', [CommitProductController::class, 'template'])->name('commit_product.template');
+                Route::get('/option', [CommitProductController::class, 'option'])->name('commit_product.option');
+
+                //考核项
+                Route::group(['prefix' => '/item'], function () {
+                    Route::get('/{id}', [CommitProductItemController::class, 'list'])->name('commit_product_item.list')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}', [CommitProductItemController::class, 'create'])->name('commit_product_item.create')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}/order', [CommitProductItemController::class, 'order'])->name('commit_product_item.order')->where(['id' => UUID_REGEX]);
+                    Route::post('/{id}/upload', [CommitProductItemController::class, 'upload'])->name('commit_product_item.upload')->where(['id' => UUID_REGEX]);
+                    Route::put('/{id}/{item_id}', [CommitProductItemController::class, 'update'])->name('commit_product_item.update')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                    Route::delete('/{id}/{item_id}', [CommitProductItemController::class, 'delete'])->name('commit_product_item.delete')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
+                    Route::post('/{id}/{item_id}', [CommitProductItemController::class, 'option'])->name('commit_product_item.option')->where(['id' => UUID_REGEX, 'item_id' => UUID_REGEX]);
                 });
             });
         });
@@ -389,6 +441,24 @@ Route::middleware("auth")->group(function () {
             Route::get('/{id}', [PartController::class, 'item'])->name('part.item')->where('id', UUID_REGEX);
             Route::post('/import', [PartController::class, 'import'])->name('part.import');
             Route::get('/template', [PartController::class, 'template'])->name('part.template');
+        });
+
+        //整车服务
+        Route::group(['prefix' => '/vehicle'], function () {
+            Route::get('/', [VehicleController::class, 'index'])->name('vehicle.index');
+            Route::get('/finish', [VehicleController::class, 'finish'])->name('vehicle.finish');
+            Route::get('/task', [VehicleController::class, 'task'])->name('vehicle.task');
+            Route::get('/list', [VehicleController::class, 'list'])->name('vehicle.list');
+            Route::post('/upload/{id}', [VehicleController::class, 'upload'])->name('vehicle.upload')->where('id', UUID_REGEX);
+            Route::get('/{id}', [VehicleController::class, 'detail'])->name('vehicle.detail')->where('id', UUID_REGEX);
+            Route::get('/report/{id}', [VehicleController::class, 'report'])->name('vehicle.report')->where('id', UUID_REGEX);
+            Route::put('/{id}', [VehicleController::class, 'update'])->name('vehicle.update')->where('id', UUID_REGEX);
+            Route::patch('/{id}', [VehicleController::class, 'close'])->name('vehicle.close')->where('id', UUID_REGEX);
+        });
+
+        //导出报表
+        Route::group(['prefix' => '/report'], function () {
+            Route::post('/custom', [CustomController::class, 'export'])->name('custom.export');
         });
     });
 });

@@ -1,15 +1,12 @@
 <?php
 namespace App\Services\Backend;
 
-use App\Imports\UserImport;
 use App\Jobs\PushNoticeToDepartment;
 use App\Jobs\RetractNoticeToDepartment;
 use App\Models\User;
 use App\Models\Notice;
 use App\Services\Service;
-use App\Traits\ImportTemplateTrait;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 /**

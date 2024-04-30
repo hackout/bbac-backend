@@ -43,6 +43,12 @@ html {
     font-family: HarmonyOS, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
+pre {
+    font-size: 14px;
+    font-family: HarmonyOS, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #000;
+}
+
 a {
     color: #333;
     text-decoration: none;
@@ -86,7 +92,7 @@ textarea {
 :root {
     --el-color-white: #ffffff;
     --el-color-black: #000000;
-    --el-color-main:#0D0D15; 
+    --el-color-main: #0D0D15;
     --el-color-primary: #1D78FF;
     --el-color-primary-light-3: #79bbff;
     --el-color-primary-light-5: #a0cfff;
@@ -175,7 +181,13 @@ textarea {
     --el-link-color: #999999;
     --el-table-th: #1A1A1A;
     --el-table-th-bg: #EEEEEE;
-    --el-border-lighter: rgba(0,0,0,.1);
+    --el-border-lighter: rgba(0, 0, 0, .1);
+    --el-vehicle-success: #34A755;
+    --el-vehicle-danger: #ED4235;
+    --el-vehicle-warning: #FCCA43;
+    --el-report-primary: #27406A;
+    --el-report-main: #335CA1;
+    --el-report-light: #e2e4e9;
 }
 
 .page-block {
@@ -212,6 +224,12 @@ textarea {
 .page-search-form {
     flex: 1;
     text-align: right;
+    --el-color-primary: var(--el-report-primary);
+    --el-color-primary-light-3: color-mix(in srgb, var(--el-color-primary) 70%, white);
+    --el-color-primary-light-5: color-mix(in srgb, var(--el-color-primary) 50%, white);
+    --el-color-primary-light-7: color-mix(in srgb, var(--el-color-primary) 30%, white);
+    --el-color-primary-light-8: color-mix(in srgb, var(--el-color-primary) 20%, white);
+    --el-color-primary-light-9: color-mix(in srgb, var(--el-color-primary) 10%, white);
 }
 
 .page-search-form .el-form-item {
@@ -222,7 +240,7 @@ textarea {
     margin-right: 0 !important;
 }
 
-.page-search-buttons-upload{
+.page-search-buttons-upload {
     width: auto;
     display: inline-flex;
     margin: 0 12px;
@@ -263,21 +281,24 @@ svg {
     align-items: center;
     justify-content: center;
 }
-.el-input__suffix img{
+
+.el-input__suffix img {
     cursor: pointer;
 }
 
-.el-tree{
+.el-tree {
     width: 100% !important;
-  }
-.el-drawer__title{
+}
+
+.el-drawer__title {
     font-size: 18px;
 }
-.el-drawer__body{
+
+.el-drawer__body {
     padding-top: 0;
 }
 
-.form-block-title{
+.form-block-title {
     border-left: var(--el-color-primary) 4px solid;
     padding: 0 20px;
     box-sizing: border-box;
@@ -286,8 +307,192 @@ svg {
     line-height: 28px;
     font-size: 18px;
 }
-.form-block-content{
+
+.form-block-content {
     padding: 20px;
     box-sizing: border-box;
     width: 100%;
+}
+
+.margin-bottom {
+    margin-bottom: 15px;
+}
+
+.empty-flex {
+    flex: 1;
+}
+
+.printer-box {
+    --report-width: 1580px;
+    width: var(--report-width);
+    padding: 20px;
+}
+
+.report {
+    display: flex;
+    width: var(--report-width);
+    height: auto;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.report-table {
+    --report-bg: #f6f8f9;
+    --report-border: var(--report-bg);
+    --report-right-border: var(--report-bg);
+    --report-bottom-border: var(--report-bg);
+    margin-top: 20px;
+    width: 100%;
+    font-size: 14px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    word-break: break-all;
+    background-color: var(--report-bg);
+    border-color: var(--report-border);
+}
+
+.report-border {
+    --report-border: var(--el-report-primary);
+    --report-right-border: var(--el-report-primary);
+    --report-bottom-border: var(--el-report-primary);
+}
+
+.report-border-bottom {
+    --report-bottom-border: var(--el-report-primary);
+}
+
+.report-border-right {
+    --report-right-border: var(--el-report-primary);
+}
+
+.report-border-full {
+    --report-border: var(--el-report-primary);
+}
+.report-table-left-border{
+    border-left: 1px solid var(--report-right-border);
+}
+.report-table-right-border{
+    border-right: 1px solid var(--report-right-border);
+}
+
+.report-table th,
+.report-table td {
+    min-width: 1%;
+    min-height: 30px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    border-right-color: var(--report-right-border);
+    border-bottom-color: var(--report-bottom-border);
+    box-sizing: border-box;
+    font-size: 12px;
+}
+
+.report-table thead {
+    background-color: var(--el-report-main);
+    color: var(--el-color-white);
+}
+
+
+.report-table thead.report-title {
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    font-size: 18px;
+}
+
+.report-table thead.report-title th {
+    font-weight: 200;
+    padding: 0;
+    border-width: 0;
+    background-color: var(--el-report-primary);
+    color: var(--el-color-white);
+    height: 50px;
+    padding: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+    font-size: 18px;
+}
+
+.report-table th div,
+.report-table td div {
+    width: 100%;
+    height: 100%;
+    min-height: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-table thead.report-title th div.left {
+    justify-content: flex-start;
+}
+
+.report-table thead.report-title th div.right {
+    justify-content: flex-end;
+}
+
+.report-table thead.report-title img {
+    margin: 0;
+    padding: 0;
+}
+
+.report-empty td {
+    height: 5px;
+}
+
+.report-empty-10 td {
+    height: 10px;
+}
+
+.report-empty-20 td {
+    height: 20px;
+}
+
+.report-empty-30 td {
+    height: 30px;
+}
+
+.report-empty-40 td {
+    height: 40px;
+}
+
+.report-empty-50 td {
+    height: 50px;
+}
+
+.report-empty-60 td {
+    height: 60px;
+}
+
+.report-empty-70 td {
+    height: 70px;
+}
+
+.report-empty-80 td {
+    height: 80px;
+}
+
+.report-empty-90 td {
+    height: 90px;
+}
+
+.report-empty-full td {
+    height: 100px;
+}
+
+.report-page td {
+    height: 50px;
+    width: var(--report-width);
+    background-color: var(--el-report-light);
+    color: var(--el-report-primary);
+    font-size: 14px;
+}
+
+
+.report-page span+span {
+    margin-left: 10px;
 }

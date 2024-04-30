@@ -8,36 +8,59 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * 整车服务-动态考核
+ * 整车服务-考核模板
  *
  * @author Dennis Lui <hackout@vip.qq.com>
  * @property string $id 主键
- * @property string $author_id 发布者ID
- * @property string $user_id 用户ID
- * @property string $examine_vehicle_id 考核模板ID
- * @property string $parent_id 上一个版本ID
+ * @property ?string $author_id 发布者ID
+ * @property ?string $user_id 用户ID
+ * @property ?string $examine_vehicle_id 考核模板ID
+ * @property ?string $parent_id 上一个版本ID
  * @property string $version 版本号
  * @property string $name 模板名称
  * @property string $description 备注信息
- * @property string $engine 机型
- * @property string $period 标准工时
- * @property string $is_valid 是否有效
- * @property string $status 状态
+ * @property int $engine 机型
+ * @property float $period 标准工时
+ * @property bool $is_valid 是否有效
+ * @property int $status 状态
  * @property-read ?Carbon $created_at 创建时间
  * @property-read ?Carbon $updated_at 更新时间
  * @property-read ?User $author 发布者
  * @property-read ?User $user 用户
- * @property-read ?ExamineVehicle $examine 考核模板
  * @property-read ?self $parent 上一个版本
  * @property-read ?self $child 下一个版本
+ * @property-read ?ExamineVehicle $examine 考核模板
+ * @property-read ?Collection<CommitVehicleItem> $items 考核项
+ * @property-read ?Collection<CommitApprove> $approves 审核记录
  */
 class CommitVehicle extends Model
 {
     use HasFactory, PrimaryKeyUuidTrait;
+
+    /**
+     * 待提交
+     */
+    const STATUS_DRAFT = 0;
+
+    /**
+     * 待审核
+     */
+    const STATUS_PENDING = 1;
+
+    /**
+     * 审核通过
+     */
+    const STATUS_SUCCESS = 2;
+
+    /**
+     * 拒绝
+     */
+    const STATUS_REJECT = 3;
 
     protected $fillable = [
         'id',
@@ -56,7 +79,7 @@ class CommitVehicle extends Model
 
     public $casts = [
         'engine' => 'integer',
-        'period' => 'decimal',
+        'period' => 'decimal:2',
         'is_valid' => 'boolean',
         'status' => 'integer',
         'created_at' => 'datetime',
@@ -130,5 +153,16 @@ class CommitVehicle extends Model
     public function items()
     {
         return $this->hasMany(CommitVehicleItem::class);
+    }
+
+    /**
+     * 审核记录
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return null|Collection<CommitApprove>|MorphMany
+     */
+    public function approves()
+    {
+        return $this->morphMany(CommitApprove::class, 'commit');
     }
 }

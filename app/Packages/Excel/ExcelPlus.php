@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Packages\Excel;
+
 use Exception;
 
-class ExcelPlus{
+class ExcelPlus
+{
 
     /**
      * 数字转Excel列
@@ -12,7 +14,7 @@ class ExcelPlus{
      * @param  integer|float|string $number
      * @return string
      */
-    public function covertToLetter(int|float|string $number):string
+    public function covertToLetter(int|float|string $number): string
     {
         return self::numberToLetter($number);
     }
@@ -24,13 +26,12 @@ class ExcelPlus{
      * @param  integer|float|string $number
      * @return string
      */
-    public static function numberToLetter(int|float|string $number):string
+    public static function numberToLetter(int|float|string $number): string
     {
-        $letters = range('A','Z');
+        $letters = range('A', 'Z');
         $num = count($letters);
-        $maxLength = pow($num,3);
-        if($number > $maxLength)
-        {
+        $maxLength = pow($num, 3);
+        if ($number > $maxLength) {
             throw new Exception("最大值不超过$maxLength");
         }
         $strings = [
@@ -39,11 +40,9 @@ class ExcelPlus{
             $number % $num
         ];
         $result = '';
-        foreach($strings as $key)
-        {
-            if($key)
-            {
-                $result.= $letters[$key-1];
+        foreach ($strings as $key) {
+            if ($key) {
+                $result .= $letters[$key - 1];
             }
         }
         return $result;
@@ -56,7 +55,7 @@ class ExcelPlus{
      * @param  string $string
      * @return string
      */
-    public function convertToColor(string $string):string
+    public function convertToColor(string $string): string
     {
         return self::hashToExcelColor($string);
     }
@@ -68,9 +67,9 @@ class ExcelPlus{
      * @param  string $string
      * @return string
      */
-    public static function hashToExcelColor(string $string):string
+    public static function hashToExcelColor(string $string): string
     {
-        return strtoupper(str_replace('#','',$string));
+        return strtoupper(str_replace('#', '', $string));
     }
 
     /**
@@ -80,8 +79,9 @@ class ExcelPlus{
      * @param  float $px
      * @return float
      */
-    public static function pxToPt($px) {
+    public static function pxToPt($px)
+    {
         return $px * (72 / 96);
     }
-    
+
 }

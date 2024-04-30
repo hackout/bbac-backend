@@ -3,14 +3,11 @@ namespace App\Services\Backend;
 
 use App\Imports\TrainingImport;
 use App\Models\TrainingUser;
-use App\Models\User;
 use App\Models\Training;
 use App\Packages\StoragePlus\StoragePlus;
 use App\Services\Service;
 use App\Traits\ExportTemplateTrait;
 use App\Traits\ImportTemplateTrait;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;

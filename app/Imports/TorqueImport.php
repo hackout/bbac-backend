@@ -28,7 +28,6 @@ class TorqueImport implements ToCollection
         $obj = $objRead->load($this->uploadedFile);
         $currSheet = $obj->getActiveSheet();
         $array = [];
-        $i = 0;
         foreach ($currSheet->getDrawingCollection() as $drawing) {
             if ($drawing instanceof MemoryDrawing) {
                 ob_start();

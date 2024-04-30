@@ -191,4 +191,15 @@ class PartService extends Service
         }
         $this->import($file);
     }
+
+    /**
+     * 获取零件选项列表
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return Collection
+     */
+    public function getOption(): Collection
+    {
+        return parent::getAll()->map(fn(Part $item) => ['value' => $item->id, 'name' => $item->number]);
+    }
 }

@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers\Backend;
 
+use Inertia\Inertia;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Services\Backend\CommitService;
 use App\Services\Backend\DictService;
 use App\Services\Backend\ExamineService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Inertia\Response as InertiaResponse;
-use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * 考核定义控制器
@@ -27,20 +25,15 @@ class ExamineController extends Controller
      * @param  Request         $request
      * @return InertiaResponse
      */
-    public function index(Request $request, DictService $dictService, CommitService $commitService): InertiaResponse
+    public function index(Request $request, DictService $dictService): InertiaResponse
     {
         return Inertia::render('Examine/Index', [
-            'sub_type' => $dictService->getOptionByCode('sub_type'),
-            'examine_type' => $dictService->getOptionByCode('examine_type'),
+            'examine_inline_type' => $dictService->getOptionByCode('examine_inline_type'),
+            'examine_product_type' => $dictService->getOptionByCode('examine_product_type'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
             'template_status' => $dictService->getOptionByCode('template_status'),
-            'inline_type' => $commitService->getInlineOptions(),
-            'product_type' => $commitService->getProductOptions(),
-            'service_type' => $commitService->getServiceOptions(),
-            'engine_type' => $dictService->getOptionByCode('engine_type')
         ]);
     }
-
-
 
     /**
      * 获取考核模板列表
@@ -53,70 +46,48 @@ class ExamineController extends Controller
     public function list(Request $request, ExamineService $examineService): JsonResponse
     {
         $rules = [
-            'sub_type' => 'sometimes|nullable|integer',
             'keyword' => 'sometimes|nullable',
-            'type' => 'sometimes|nullable|integer',
+            'type' => 'sometimes|nullable|in:inline,product,vehicle',
             'status' => 'sometimes|nullable|integer',
+            'page' => 'sometimes|nullable',
+            'limit' => 'sometimes|nullable'
         ];
         $messages = [
-            'sub_type.integer' => '考核类型不正确',
-            'type.integer' => '模板类型不正确',
+            'type.in' => '模板类型不正确',
             'status.integer' => '审核状态不正确',
         ];
         $data = $request->validate($rules, $messages);
-        $result = $examineService->getList($data);
-        return $this->success($result);
-    }
-
-    public  function option(Request $request,ExamineService $examineService):JsonResponse
-    {
-        $rules = [
-            'type' => 'sometimes|nullable|integer'
-        ];
-        $messages = [
-            'type.integer' => '模板类型不正确'
-        ];
-        $data = $request->validate($rules, $messages);
-        $result = $examineService->getOption($data);
+        $result = $examineService->getList($request->user(), $data);
         return $this->success($result);
     }
 
     /**
-     * 导出SPC
+     * 获取考核模板选项列表
      *
      * @author Dennis Lui <hackout@vip.qq.com>
-     * @param  Request         $request
-     * @param  TorqueItemService $torqueItemService
+     * @param  Request        $request
+     * @param  ExamineService $examineService
      * @return JsonResponse
      */
-    public function export(Request $request, TorqueItemService $torqueItemService): JsonResponse
+    public function option(string $type,Request $request, ExamineService $examineService): JsonResponse
     {
-        $rules = [
-            'keyword' => 'sometimes|nullable',
-            'plant' => 'sometimes|nullable|integer',
-            'line' => 'sometimes|nullable|integer',
-        ];
-        $messages = [
-            'plant.integer' => '参数错误',
-            'line.integer' => '参数错误',
-        ];
-        $data = $request->validate($rules, $messages);
-        $result = $torqueItemService->export($data);
+        $result = $examineService->getOption($request->user(), $type);
         return $this->success($result);
     }
-
 
     /**
      * 删除考核模板
      *
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  string         $id
+     * @param  string         $type
+     * @param  Request        $request
      * @param  ExamineService $examineService
      * @return JsonResponse
      */
-    public function delete(string $id, ExamineService $examineService): JsonResponse
+    public function delete(string $id, string $type, Request $request, ExamineService $examineService): JsonResponse
     {
-        $examineService->delete($id);
+        $examineService->delete($request->user(), $type, $id);
         return $this->success();
     }
 }

@@ -241,6 +241,11 @@ export default {
                 yield_unit: [
                     { required: true, message: '请填写排产次数', trigger: 'blur' }
                 ],
+            },
+            typeList: {
+                1: 'inline',
+                2: 'product',
+                3: 'vehicle'
             }
         }
     },
@@ -254,7 +259,7 @@ export default {
             }
         },
         async changeType() {
-            const res = await this.$axios.get(this.$route('examine.option'), { type: this.form.query })
+            const res = await this.$axios.get(this.$route('examine.option',{ type: this.typeList[this.form.type] }))
             if (res.code == this.$config.successCode) {
                 this.examines = res.data
             } else {

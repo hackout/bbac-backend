@@ -2,11 +2,14 @@
 namespace App\Services\Frontend;
 
 use App\Models\Account;
-use App\Models\Examine;
+use App\Models\ExamineInline;
+use App\Models\ExamineProduct;
+use App\Models\ExamineVehicle;
 use App\Models\TaskItem;
 use App\Models\Task;
 use App\Models\TrainingUser;
 use App\Models\User;
+use App\Packages\Department\DepartmentRole;
 use App\Packages\ImagePlus\ImagePlus;
 use Carbon\Carbon;
 use App\Services\Service;
@@ -15,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * 员工服务
+ * 任务单服务
  *
  * @author Dennis Lui <hackout@vip.qq.com>
  */
@@ -25,14 +28,17 @@ class TaskService extends Service
     public ?string $className = Task::class;
 
     /**
-     * 获取整车考核列表
+     * 整车服务-考核单列表
      *
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  User $user
      * @return array
      */
-    public function getListByService(User $user): array
+    public function getVehicleList(User $user): array
     {
+        if (!DepartmentRole::checkVehicle($user)) {
+            return ['total'=>0,'items' => []];
+        }
         parent::setQuery([
             ['user_id', '=', $user->id],
             ['type', '=', Task::TYPE_SERVICE]
@@ -60,6 +66,54 @@ class TaskService extends Service
         return $result;
     }
 
+
+    /**
+     * 获取详情-整车考核
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return array
+     */
+    public function detailVehicle(User $user, string $id): array
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => __('issue_vehicle.missing_permission')]);
+        }
+        $task = parent::findById($id);
+        $process = 0;
+        $items = $task->items->map(function ($item) use (&$process) {
+            $thumbnails = [];
+            foreach ($item->getMedia(TaskItem::MEDIA_FILE) as $media) {
+                $thumbnails[] = $media->getUrl();
+            }
+            return [
+                'id' => $item->id,
+                'content' => $item->content,
+                'sort_order' => $item->sort_order,
+                'remark' => $item->remark,
+                'extra' => $item->extra,
+                'thumbnails' => $thumbnails
+            ];
+        });
+        $result = [
+            'id' => $task->id,
+            'number' => $task->number,
+            'task_status' => $task->task_status,
+            'plant' => $task->plant,
+            'line' => $task->line,
+            'engine' => $task->engine,
+            'status' => $task->status,
+            'assembly' => optional($task->assembly)->number,
+            'progress' => $process,
+            'items' => $items
+        ];
+
+        return $result;
+    }
+
+
+
     /**
      * 在线考核-常规考核列表
      *
@@ -75,7 +129,7 @@ class TaskService extends Service
         ]);
         parent::setHas([
             'examine' => function ($query) {
-                $query->where('sub_type', Examine::SUB_TYPE_STANDARD);
+                $query->where('sub_type', ExamineInline::TYPE_STANDARD);
             }
         ]);
         $result = parent::list();
@@ -116,7 +170,7 @@ class TaskService extends Service
         ]);
         parent::setHas([
             'examine' => function ($query) {
-                $query->where('sub_type', Examine::SUB_TYPE_GLUING);
+                $query->where('type', ExamineInline::TYPE_GLUING);
             }
         ]);
         $result = parent::list();
@@ -151,15 +205,26 @@ class TaskService extends Service
      */
     public function getListByInlineDynamic(User $user): array
     {
-        parent::setQuery([
+        if (!DepartmentRole::checkInline($user)) {
+            return ['total'=>0,'items' => []];
+        }
+        $sql = [
             ['user_id', '=', $user->id],
             ['type', '=', Task::TYPE_INLINE]
-        ]);
-        parent::setHas([
-            'examine' => function ($query) {
-                $query->where('sub_type', Examine::SUB_TYPE_DYNAMIC);
+        ];
+        $examineIdList = ExamineInline::where('type',ExamineInline::TYPE_DYNAMIC)->select('id')->get()->pluck('id')->toArray();
+        
+        $sql[] = [
+            function($query) use($examineIdList){
+                if($examineIdList)
+                {
+                    $query->whereIn('examine_id',$examineIdList);
+                }else{
+                    $query->whereIn('examine_id',['-1']);
+                }
             }
-        ]);
+        ];
+        parent::setQuery($sql);
         $result = parent::list();
         $now = Carbon::now();
         $result['items'] = $result['items']->map(function ($item) use ($now) {
@@ -298,7 +363,7 @@ class TaskService extends Service
         ]);
         parent::setHas([
             'examine' => function ($query) {
-                $query->where('sub_type', Examine::SUB_TYPE_OVERHAUL);
+                $query->where('type', ExamineProduct::TYPE_OVERHAUL);
             }
         ]);
         $result = parent::list();
@@ -339,7 +404,7 @@ class TaskService extends Service
         ]);
         parent::setHas([
             'examine' => function ($query) {
-                $query->where('sub_type', Examine::SUB_TYPE_ASSEMBLING);
+                $query->where('type', ExamineProduct::TYPE_ASSEMBLING);
             }
         ]);
         $result = parent::list();
@@ -380,7 +445,7 @@ class TaskService extends Service
         ]);
         parent::setHas([
             'examine' => function ($query) {
-                $query->where('sub_type', Examine::SUB_TYPE_DYNAMIC);
+                $query->where('type', ExamineProduct::TYPE_DYNAMIC);
             }
         ]);
         $result = parent::list();
@@ -479,6 +544,9 @@ class TaskService extends Service
      */
     public function inlineDetail(User $user, string $id): array
     {
+        if (!DepartmentRole::checkInline($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
         $task = parent::find([
             'user_id' => $user->id,
             'id' => $id

@@ -1,14 +1,17 @@
 <?php
 namespace App\Packages\CommitPlus;
 
-use App\Models\Commit;
-use App\Services\Private\DictService;
+use App\Models\CommitInline;
+use App\Models\CommitVehicle;
+use App\Models\CommitProduct;
 
 class CommitPlus
 {
+    private string $model;
 
-    public function __construct(private Commit $commit)
+    public function __construct(private CommitVehicle|CommitInline|CommitProduct $commit)
     {
+        $this->model = get_class($this->commit);
     }
 
     public function getLastCommit()
@@ -30,101 +33,55 @@ class CommitPlus
         $deleted = [];
         $created = [];
         $updated = [];
-
+        $fillable = collect((new $this->model)->getFillable())->filter(fn($n) => !strpos($n, '_id') && !in_array($n, ['id', 'is_valid', 'status','version']))->values()->toArray();
         if ($lastCommit) {
-            if ($lastCommit->name != $this->commit->name) {
-                $updated[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'name',
-                    'before' => $lastCommit->name,
-                    'content' => $this->commit->name
-                ];
-            }
-            if ($lastCommit->description != $this->commit->description) {
-                $updated[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'description',
-                    'before' => $lastCommit->description,
-                    'content' => $this->commit->description
-                ];
-            }
-            if ($lastCommit->engine != $this->commit->engine) {
-                $updated[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'engine',
-                    'before' => (new DictService)->getNameByCode('engine_type', $lastCommit->engine),
-                    'content' => (new DictService)->getNameByCode('engine_type', $this->commit->engine),
-                ];
-            }
-            if ($lastCommit->period != $this->commit->period) {
-                $updated[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'period',
-                    'before' => $lastCommit->period,
-                    'content' => $this->commit->period
-                ];
+            foreach ($fillable as $keyName) {
+                if ($lastCommit->$keyName != $this->commit->$keyName) {
+                    $updated[] = [
+                        'id' => $this->commit->id,
+                        'code' => $keyName,
+                        'before' => $lastCommit->$keyName,
+                        'content' => $this->commit->$keyName
+                    ];
+                }
             }
         } else {
-
-            if ($this->commit->name) {
+            foreach ($fillable as $keyName) {
                 $created[] = [
                     'id' => $this->commit->id,
-                    'code' => 'name',
-                    'content' => $this->commit->name
-                ];
-            }
-            if ($this->commit->description) {
-                $created[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'description',
-                    'content' => $this->commit->description
-                ];
-            }
-            if ($this->commit->engine) {
-                $created[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'engine',
-                    'content' => (new DictService)->getNameByCode('engine_type', $this->commit->engine)
-                ];
-            }
-            if ($this->commit->period) {
-                $created[] = [
-                    'id' => $this->commit->id,
-                    'code' => 'period',
-                    'content' => $this->commit->period
+                    'code' => $keyName,
+                    'before' => null,
+                    'content' => $this->commit->$keyName
                 ];
             }
         }
 
         $items->each(function ($item) use (&$created, &$updated, $lastCommitItems) {
-            if ($item->content_zh) {
-                $diffItem = $lastCommitItems->where('content_zh', $item->content_zh)->first();
-                if (!$diffItem) {
-                    $created[] = ['id' => $item->id, 'code' => 'items', 'content' => $item->content_zh];
-                } else {
-                    $diffItemArray = $diffItem->toArray();
-                    $itemArray = $item->toArray();
-                    unset ($diffItemArray['id'], $diffItemArray['created_at'], $diffItemArray['updated_at'], $itemArray['id'], $itemArray['created_at'], $itemArray['updated_at']);
-                    if (json_encode($itemArray) != json_encode($diffItemArray)) {
-                        $updated[] = [
-                            'id' => $item->id,
-                            'code' => 'items',
-                            'content' => $item->content_zh
-                        ];
-                    }
+            $fillable = collect($item->getFillable())->filter(fn($n) => !strpos($n, '_id') && $n != 'id')->values()->toArray();
+            $beforeItem = $lastCommitItems->where('unique_id', $item->unique_id)->first();
+            if ($beforeItem) {
+                $now = json_encode($item->pluck($fillable)->toArray());
+                $before = json_encode($beforeItem->pluck($fillable)->toArray());
+                if ($now != $before) {
+                    $updated[] = [
+                        'id' => $item->id,
+                        'code' => 'items',
+                        'before' => null,
+                        'content' => $item->content
+                    ];
                 }
+            } else {
+                $created[] = ['id' => $item->id, 'code' => 'items', 'before' => null, 'content' => $item->content];
             }
         });
         if ($lastCommitItems) {
             $lastCommitItems->each(function ($item) use (&$deleted, $items) {
-                if ($item->content_zh) {
-                    if (!$items->filter(fn($n) => $n->content_zh != $item->content_zh)->first()) {
-                        $deleted[] = [
-                            'id' => $item->id,
-                            'code' => 'items',
-                            'content' => $item->content_zh
-                        ];
-                    }
+                if (!$items->where('unique_id', $item->unique_id)->first()) {
+                    $deleted[] = [
+                        'id' => $item->id,
+                        'code' => 'items',
+                        'content' => $item->content
+                    ];
                 }
             });
         }

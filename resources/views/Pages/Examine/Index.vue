@@ -3,9 +3,6 @@
         <TopNav></TopNav>
         <div class="page-block">
             <div class="page-search">
-                <div class="page-search-buttons">
-                    <el-button type="primary" @click="exportData" icon="el-icon-download">导出</el-button>
-                </div>
                 <div class="page-search-form">
                     <el-form :model="query" ref="query" inline @submit.native.prevent="onSearch">
                         <el-form-item>
@@ -16,14 +13,7 @@
                             </el-select>
                         </el-form-item>
                         <el-form-item>
-                            <el-select style="width:110px" v-model="query.sub_type" @change="onSearch"
-                                placeholder="考核类型" clearable>
-                                <el-option v-for="(item, index) in typeList" :key="index" :value="item.value"
-                                    :label="item.name"></el-option>
-                            </el-select>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-select style="width:110px" v-model="query.engine" @change="onSearch" placeholder="发动机机型"
+                            <el-select style="width:140px" v-model="query.engine" @change="onSearch" placeholder="发动机机型"
                                 clearable>
                                 <el-option v-for="(item, index) in engine_type" :key="index" :value="item.value"
                                     :label="item.name"></el-option>
@@ -51,14 +41,20 @@
                     </template>
                 </el-table-column>
                 <el-table-column label="模板名称" align="center" prop="name" min-width="200"></el-table-column>
-                <el-table-column label="模板类型" align="center" prop="type" width="100">
+                <el-table-column label="模板类型" align="center" prop="model" width="100">
                     <template #default="scope">
-                        <el-tag size="small">{{ $status('examine_type', scope.row.type) }}</el-tag>
+                        <el-tag size="small" v-if="scope.row.model == 'inline'">在线考核</el-tag>
+                        <el-tag size="small" v-if="scope.row.model == 'product'">产品考核</el-tag>
+                        <el-tag size="small" v-if="scope.row.model == 'vehicle'">整车服务</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column label="考核类型" align="center" prop="sub_type" width="100">
+                <el-table-column label="考核类型" align="center" prop="type" width="100">
                     <template #default="scope">
-                        <el-tag size="small">{{ $status('sub_type', scope.row.sub_type) }}</el-tag>
+                        <el-tag size="small" v-if="scope.row.model == 'inline'">{{ $status('examine_inline_type',
+                            scope.row.type) }}</el-tag>
+                        <el-tag size="small" v-if="scope.row.model == 'product'">{{ $status('examine_product_type',
+                            scope.row.type) }}</el-tag>
+                        <el-tag size="small" v-if="scope.row.model == 'vehicle'">动态考核</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column label="发动机型号" align="center" prop="engine" width="100">
@@ -80,9 +76,8 @@
                         <span>{{ $tool.dateFormat(scope.row.updated_at) }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" align="center" prop="action" width="135" fixed="right">
+                <el-table-column label="操作" align="center" prop="action" width="85" fixed="right">
                     <template #default="scope">
-                        <el-button size="small" @click="viewDetail(scope.row)" type="primary" link>查看</el-button>
                         <el-popconfirm title="确定删除此项?" @confirm="deleteItem(scope.row)">
                             <template #reference>
                                 <el-button type="danger" link>
@@ -99,31 +94,19 @@
 <script>
 export default {
     props: {
-        examine_type: {
+        examine_inline_type: {
             type: Array,
             default: []
         },
-        inline_type: {
-            type: Array,
-            default: []
-        },
-        product_type: {
-            type: Array,
-            default: []
-        },
-        service_type: {
-            type: Array,
-            default: []
-        },
-        sub_type: {
-            type: Array,
-            default: []
-        },
-        template_status: {
+        examine_product_type: {
             type: Array,
             default: []
         },
         engine_type: {
+            type: Array,
+            default: []
+        },
+        template_status: {
             type: Array,
             default: []
         },
@@ -141,41 +124,22 @@ export default {
             }
         }
     },
-    computed: {
-        typeList() {
-            let array = this.inline_type.concat(this.product_type.concat(this.service_type));
-            if (this.query.type == 1) array = this.inline_type
-            if (this.query.type == 2) array = this.product_type
-            if (this.query.type == 3) array = this.service_type
-            return this.sub_type.filter(n => array.indexOf(n.value) > -1)
-        }
-    },
     mounted() {
         this.$nextTick(() => { })
     },
     methods: {
-        addItem() {
-            this.chooseAddVisit = true
-        },
-        editItem(item) {
-            this.editable = true
-            this.chooseAddVisit = false
-            this.$nextTick(() => {
-                this.$refs.SaveDialog.open('edit', item.sub_type, item)
-            })
-        },
-        viewItem(item) {
-            this.viewable = true
-            this.$nextTick(() => {
-                this.$refs.ChangeDialog.open(item)
-            })
-        },
-        importSuccess() {
-            this.$message.success('导入信息成功')
-            this.refreshData()
-        },
         async deleteItem(item) {
-            const res = await this.$axios.delete(this.$route('examine.delete', { id: item.id }))
+            let data = {
+                id: item.id,
+                type: 'inline'
+            }
+            if (item.model == 'product') {
+                data.type = 'product'
+            }
+            if (item.model == 'vehicle') {
+                data.type = 'vehicle'
+            }
+            const res = await this.$axios.delete(this.$route('examine.delete', data))
             if (res.code == this.$config.successCode) {
                 this.$message.success('删除考核成功')
                 this.refreshData()
@@ -192,7 +156,6 @@ export default {
         },
         refreshData() {
             this.items = []
-            this.$refs.importUpload.clearFiles()
             this.$refs.table.refresh()
         }
     }

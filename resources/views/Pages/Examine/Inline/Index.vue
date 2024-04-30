@@ -5,21 +5,27 @@
             <div class="page-search">
                 <div class="page-search-buttons">
                     <el-button type="primary" @click="addItem" icon="el-icon-plus">新增</el-button>
-                    <el-upload :action="$route('commit.import', { type: 'inline' })" ref="importUpload"
-                        :on-success="importSuccess" class="page-search-buttons-upload" :limit="1"
-                        :show-file-list="false" :headers="uploadHeaders">
+                    <el-upload :action="$route('commit_inline.import')" ref="importUpload" :on-success="importSuccess"
+                        class="page-search-buttons-upload" :limit="1" :show-file-list="false" :headers="uploadHeaders">
                         <el-button icon="el-icon-upload" type="primary">导入</el-button>
                     </el-upload>
                     <el-divider direction="vertical" />
-                    <el-button type="primary" @click="$goTo('commit.template', { type: 'inline' })" link
+                    <el-button type="primary" @click="$goTo('commit_inline.template')" link
                         icon="el-icon-download">模板</el-button>
                 </div>
                 <div class="page-search-form">
                     <el-form :model="query" ref="query" inline @submit.native.prevent="onSearch">
                         <el-form-item>
-                            <el-select style="width:110px" v-model="query.sub_type" @change="onSearch"
-                                placeholder="考核类型" clearable>
-                                <el-option v-for="(item, index) in typeList" :key="index" :value="item.value"
+                            <el-select style="width:110px" v-model="query.type" @change="onSearch" placeholder="考核类型"
+                                clearable>
+                                <el-option v-for="(item, index) in examine_inline_type" :key="index" :value="item.value"
+                                    :label="item.name"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-select style="width:110px" v-model="query.engine" @change="onSearch" placeholder="考核机型"
+                                clearable>
+                                <el-option v-for="(item, index) in engine_type" :key="index" :value="item.value"
                                     :label="item.name"></el-option>
                             </el-select>
                         </el-form-item>
@@ -31,7 +37,8 @@
                             </el-select>
                         </el-form-item>
                         <el-form-item>
-                            <el-input v-model="query.keyword" style="width:160px" placeholder="关键词"></el-input>
+                            <el-input v-model="query.keyword" style="width:160px" placeholder="关键词"
+                                clearable></el-input>
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary" native-type="submit">
@@ -44,9 +51,8 @@
                     </el-form>
                 </div>
             </div>
-            <DataTable ref="table" :apiName="$route('commit.list', { type: 'inline' })"
-                @change-page="query.page = $event" @change-page-size="query.limit = $event" height="570px"
-                :params="query" stripe highlightCurrentRow>
+            <DataTable ref="table" :apiName="$route('commit_inline.list')" @change-page="query.page = $event"
+                @change-page-size="query.limit = $event" height="570px" :params="query" stripe highlightCurrentRow>
                 <el-table-column label="序号" align="center" prop="id" width="100">
                     <template #default="scope">
                         <span>{{ scope.$index + 1 < 10 ? '0' + (scope.$index + 1) : scope.$index + 1 }}</span>
@@ -55,7 +61,7 @@
                 <el-table-column label="模板名称" align="center" prop="name" min-width="200"></el-table-column>
                 <el-table-column label="考核类型" align="center" prop="line" width="100">
                     <template #default="scope">
-                        <el-tag size="small">{{ $status('sub_type', scope.row.sub_type) }}</el-tag>
+                        <el-tag size="small">{{ $status('examine_inline_type', scope.row.type) }}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column label="发动机型号" align="center" prop="engine" width="100">
@@ -82,14 +88,12 @@
                         <span>{{ $tool.dateFormat(scope.row.updated_at) }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" align="center" prop="action" width="325" fixed="right">
+                <el-table-column label="操作" align="center" prop="action" width="285" fixed="right">
                     <template #default="scope">
                         <el-button size="small" v-if="scope.row.status == 0" @click="editItem(scope.row)" type="primary"
                             link>编辑</el-button>
                         <el-button size="small" @click="viewDetail(scope.row)" type="primary" link>查看</el-button>
                         <el-button size="small" @click="viewItem(scope.row)" type="primary" link>配置考核项</el-button>
-                        <el-button size="small" v-if="scope.row.can_export" @click="exportItem(scope.row)"
-                            type="primary" link>导出</el-button>
                         <el-button size="small" v-if="scope.row.can_approve" @click="approveItem(scope.row)"
                             type="primary" link>送审批</el-button>
                         <el-popconfirm title="确定删除此项?" @confirm="deleteItem(scope.row)">
@@ -105,13 +109,14 @@
         </div>
         <el-dialog modal-class="chooseDialog" v-model="chooseAddVisit" :show-close="false">
             <el-row :gutter="20">
-                <el-col :span="24 / typeList.length" v-for="(t, i) in typeList" :key="i">
+                <el-col :span="24 / examine_inline_type.length" v-for="(t, i) in examine_inline_type" :key="i">
                     <span @click="addItemByType(t.value)" class="col-text">{{ t.name }}</span>
                 </el-col>
             </el-row>
         </el-dialog>
         <DetailDialog v-if="detailVisit" @success="refreshData" @closed="detailVisit = false" ref="DetailDialog"
-            :sub_type="sub_type" :template_status="template_status" :engine_type="engine_type">
+            :examine_inline_item_type="examine_inline_item_type" :template_status="template_status"
+            :engine_type="engine_type">
         </DetailDialog>
         <SaveDialog v-if="editable" @success="refreshData" @closed="editable = false" ref="SaveDialog"
             :engine_type="engine_type">
@@ -119,18 +124,29 @@
         <ApproveDialog v-if="approveVisit" @success="refreshData" @closed="approveVisit = false" ref="ApproveDialog">
         </ApproveDialog>
         <ItemDrawer v-if="viewable" @success="refreshData" @closed="viewable = false" ref="ItemDrawer"
-            :standard_type="standard_type" :gluing_type="gluing_type" :dynamic_type="dynamic_type" :special="special"
-            :bolt_model="bolt_model" :bolt_type="bolt_type" :bolt_status="bolt_status"
-            :examine_item_type="examine_item_type">
+            :special="special" :bolt_status="bolt_status" :bolt_model="bolt_model" :bolt_type="bolt_type"
+            :examine_inline_type="examine_inline_type" :examine_inline_item_type="examine_inline_item_type">
         </ItemDrawer>
     </Layout>
 </template>
 <script>
+import DetailDialog from './Addons/DetailDialog.vue'
+import SaveDialog from './Addons/SaveDialog.vue'
+import ItemDrawer from './Addons/ItemDrawer.vue'
+import ApproveDialog from './Addons/ApproveDialog.vue'
 export default {
     components: {
+        DetailDialog,
+        SaveDialog,
+        ApproveDialog,
+        ItemDrawer
     },
     props: {
         special: {
+            type: Array,
+            default: []
+        },
+        bolt_status: {
             type: Array,
             default: []
         },
@@ -142,31 +158,11 @@ export default {
             type: Array,
             default: []
         },
-        bolt_status: {
+        examine_inline_type: {
             type: Array,
             default: []
         },
-        sub_type_allow: {
-            type: Array,
-            default: []
-        },
-        examine_item_type: {
-            type: Array,
-            default: []
-        },
-        standard_type: {
-            type: Array,
-            default: []
-        },
-        gluing_type: {
-            type: Array,
-            default: []
-        },
-        dynamic_type: {
-            type: Array,
-            default: []
-        },
-        sub_type: {
+        examine_inline_item_type: {
             type: Array,
             default: []
         },
@@ -183,12 +179,12 @@ export default {
     data() {
         return {
             uploadHeaders: {
-                'X-XSRF-TOKEN': this.$tool.cookies.get('XSRF-TOKEN')
+                'X-XSRF-TOKEN': ''
             },
             query: {
                 page: 1,
                 limit: 20,
-                sub_type: '',
+                type: '',
                 status: '',
                 keyword: ''
             },
@@ -200,20 +196,17 @@ export default {
             approveVisit: false
         }
     },
-    computed: {
-        typeList() {
-            return this.sub_type.filter(n => this.sub_type_allow.indexOf(n.value) > -1)
-        }
-    },
     mounted() {
-        this.$nextTick(() => { })
+        this.$nextTick(() => {
+            this.uploadHeaders['X-XSRF-TOKEN'] = this.$tool.cookies.get('XSRF-TOKEN')
+        })
     },
     methods: {
         addItemByType(type) {
             this.editable = true
             this.chooseAddVisit = false
             this.$nextTick(() => {
-                this.$refs.SaveDialog.open('add', 'inline', type)
+                this.$refs.SaveDialog.open('add', type)
             })
         },
         addItem() {
@@ -222,7 +215,7 @@ export default {
         viewDetail(item) {
             this.detailVisit = true
             this.$nextTick(() => {
-                this.$refs.DetailDialog.open('inline', item)
+                this.$refs.DetailDialog.open(item)
             })
         },
         approveItem(item) {
@@ -235,13 +228,13 @@ export default {
             this.editable = true
             this.chooseAddVisit = false
             this.$nextTick(() => {
-                this.$refs.SaveDialog.open('edit', 'inline', item.sub_type, item)
+                this.$refs.SaveDialog.open('edit', item.type, item)
             })
         },
         viewItem(item) {
             this.viewable = true
             this.$nextTick(() => {
-                this.$refs.ItemDrawer.open('inline', item)
+                this.$refs.ItemDrawer.open(item)
             })
         },
         importSuccess() {
@@ -249,7 +242,7 @@ export default {
             this.refreshData()
         },
         async deleteItem(item) {
-            const res = await this.$axios.delete(this.$route('commit.delete', { id: item.id }))
+            const res = await this.$axios.delete(this.$route('commit_inline.delete', { id: item.id }))
             if (res.code == this.$config.successCode) {
                 this.$message.success('删除考核成功')
                 this.refreshData()

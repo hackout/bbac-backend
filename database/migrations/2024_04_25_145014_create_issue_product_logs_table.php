@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('issue_product_id')->nullable()->comment("产品考核-问题ID");
             $table->uuid('user_id')->nullable()->comment("用户ID");
             $table->string("code")->comment("字段标识");
-            $table->longText("content")->comment("操作内容");
+            $table->json('extra')->nullable()->comment("变更内容");
             $table->timestamps();
             $table->comment = "产品考核问题操作记录";
         });

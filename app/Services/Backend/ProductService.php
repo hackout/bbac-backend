@@ -2,15 +2,9 @@
 namespace App\Services\Backend;
 
 use App\Models\Product;
-use App\Models\User;
-use App\Packages\Department\DepartmentRole;
 use App\Services\Service;
 use App\Traits\ExportTemplateTrait;
 use App\Traits\ImportTemplateTrait;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * 发动机清单

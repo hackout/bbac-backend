@@ -12,10 +12,10 @@ return new class extends Migration {
     {
         Schema::create('issue_vehicle_logs', function (Blueprint $table) {
             $table->uuid('id')->primary()->unique()->comment("主键");
-            $table->uuid('issue_product_id')->nullable()->comment("产品考核-问题ID");
+            $table->uuid('issue_vehicle_id')->nullable()->comment("产品考核-问题ID");
             $table->uuid('user_id')->nullable()->comment("用户ID");
             $table->string("code")->comment("字段标识");
-            $table->longText("content")->comment("操作内容");
+            $table->json('extra')->nullable()->comment("变更内容");
             $table->timestamps();
             $table->comment = "整车服务问题操作记录";
         });

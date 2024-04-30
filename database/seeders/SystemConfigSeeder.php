@@ -45,6 +45,12 @@ class SystemConfigSeeder extends Seeder
                 'content' => '8',
                 'label' => '基础工时',
                 'type' => SystemConfig::TYPE_NUMERIC
+            ],
+            [
+                'code' => 'vehicle_due',
+                'content' => '15',
+                'label' => '整车服务-问题时效',
+                'type' => SystemConfig::TYPE_NUMERIC
             ]
         ];
     }

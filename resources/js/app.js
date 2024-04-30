@@ -22,7 +22,8 @@ import DataTable from '@view/Components/Addons/DataTable.vue';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import mixinJs from '@/utils/mixin';
-import VueDraggable from 'vue-draggable';
+import VueDraggable from 'vue-draggable'; 
+import tableParse from '@/utils/tableParse';
 
 
 const ZiggyFunc = (name, params, absolute, config = Ziggy) => ZiggyJs(name, params, absolute, config);
@@ -58,8 +59,10 @@ createInertiaApp({
         app.config.globalProperties.$tool = tool
         app.config.globalProperties.$axios = axios
         app.config.globalProperties.$config = config
+        app.config.globalProperties.$tableParse = tableParse
         window.document.getElementById('pageLoading').remove();
         app.mixin(mixinJs)
+        tool.initDpi()
         return app.mount(el)
     },
 });

@@ -156,11 +156,11 @@ export default {
             this.refreshData()
         },
         clickCell(item, column) {
+            console.log(item)
             if (item[column] == null) {
                 this.addItem(item.sub, item.user_id, this.form.month + '-' + (column < 10 ? '0' + column : column))
             }
-            if((item.type == 6 || item.type == 7) && item[column] == 0)
-            {
+            if ((item.type == 6 || item.type == 7) && item[column] == 0) {
                 this.addItem(item.type, item.user_id, this.form.month + '-' + (column < 10 ? '0' + column : column))
             }
         },
@@ -210,16 +210,6 @@ export default {
                 this.$refs.SaveDialog.open(type, date, user_id)
             })
         },
-        async deleteItem(item) {
-            var res = await this.$axios.delete(this.$route('task.delete', { id: item.id }),)
-            this.deleting = false
-            if (res.code == this.$config.successCode) {
-                this.$message.success("删除任务成功")
-                this.refreshData()
-            } else {
-                this.$message.error(res.message)
-            }
-        },
         async onSearch() {
             var validate = await this.$refs.form.validate().catch(() => { })
             if (!validate) return false;
@@ -244,7 +234,7 @@ export default {
 .assignment {
     width: 100%;
     height: calc(100vh - 120px);
-    margin: -5px 0 -25px 0 ;
+    margin: -5px 0 -25px 0;
     @extend .flexColumn;
     flex-direction: column;
 

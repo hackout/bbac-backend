@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -23,11 +22,11 @@ return new class extends Migration
             $table->uuid('assembly_id')->nullable()->comment("总成号ID");
             $table->uuid('product_id')->nullable()->comment("发动机ID");
             $table->uuid('part_id')->nullable()->comment("零件ID");
-            $table->integer("issue_description")->default(0)->comment("问题描述");
+            $table->integer("defect_description")->default(0)->comment("缺陷描述");
             $table->integer("defect_level")->default(0)->comment("问题等级");
-            $table->longText("reason")->nullable()->comment("原因分析");
-            $table->longText("cause")->nullable()->comment("根本原因");
-            $table->integer("category")->default(0)->comment("问题等级");
+            $table->integer("defect_part")->default(0)->comment("缺陷零件");
+            $table->integer("defect_position")->default(0)->comment("问题位置");
+            $table->integer("defect_cause")->default(0)->comment("具体位置");
             $table->longText("soma")->nullable()->comment("短期措施");
             $table->longText("lama")->nullable()->comment("长期措施");
             $table->longText("note")->nullable()->comment("备注信息");

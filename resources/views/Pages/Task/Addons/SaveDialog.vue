@@ -173,6 +173,11 @@ export default {
                 examine_id: [
                     { required: true, message: '请选择考核单模板', trigger: 'change' }
                 ]
+            },
+            typeList: {
+                1: 'inline',
+                2: 'product',
+                3: 'vehicle'
             }
         }
     },
@@ -186,7 +191,7 @@ export default {
             }
         },
         async changeType() {
-            const res = await this.$axios.get(this.$route('examine.option'), { type: this.form.type })
+            const res = await this.$axios.get(this.$route('examine.option',{ type: this.typeList[this.form.type] }))
             if (res.code == this.$config.successCode) {
                 this.examines = res.data
             } else {

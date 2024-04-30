@@ -18,8 +18,10 @@ return new class extends Migration
             $table->uuid('unique_id')->nullable()->comment("唯一标识");
             $table->string("station")->nullable()->comment('工位');
             $table->string("name")->nullable()->comment("测量项");
-            $table->string("content")->nullable()->comment("内容");
-            $table->string("standard")->nullable()->comment("检查标准");
+            $table->longText("content")->nullable()->comment("中文内容");
+            $table->longText("content_en")->nullable()->comment("英文内容");
+            $table->longText("standard")->nullable()->comment("检查标准");
+            $table->longText("standard_en")->nullable()->comment("检查标准(英)");
             $table->integer("number")->default(0)->comment('数量');
             $table->tinyInteger("special")->default(0)->comment('特殊特性');
             $table->string('gluing')->nullable()->comment('墨水型号');

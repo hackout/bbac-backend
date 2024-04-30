@@ -104,7 +104,7 @@ class TaskController extends Controller
         $rules = [
             'assembly_id' => 'required|exists:assemblies,id',
             'name' => 'required|max:100',
-            'examine_id' => 'required|exists:examines,id',
+            'examine_id' => 'required',
             'type' => 'required|integer',
             'plant' => 'required|integer',
             'line' => 'required|integer',
@@ -118,7 +118,6 @@ class TaskController extends Controller
             'assembly_id.required' => '总成不能为空',
             'assembly_id.exists' => '总成不存在或已删除',
             'examine_id.required' => '考核模板不能为空',
-            'examine_id.exists' => '考核模板不存在或已删除',
             'plant.required' => '工厂不能为空',
             'plant.integer' => '工厂不正确',
             'line.required' => '产线不能为空',

@@ -1,10 +1,10 @@
 <?php
 namespace App\Services\Backend;
 
-use App\Models\Torque;
 use App\Models\User;
-use App\Models\TorqueChangeRecord;
+use App\Models\Torque;
 use App\Services\Service;
+use App\Models\TorqueChangeRecord;
 use Illuminate\Support\Collection;
 
 /**

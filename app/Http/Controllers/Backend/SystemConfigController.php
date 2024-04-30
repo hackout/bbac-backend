@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Backend;
 
-use App\Http\Controllers\Controller;
-use App\Services\Backend\SystemConfigService;
-use Illuminate\Http\Request;
-use Inertia\Response as InertiaResponse;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Services\Backend\CacheService;
+use Inertia\Response as InertiaResponse;
+use App\Services\Backend\SystemConfigService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -35,5 +36,35 @@ class SystemConfigController extends Controller
         return Inertia::render('SystemConfig/Index', [
             'config' => $systemConfigService->getList()
         ]);
+    }
+
+    /**
+     * 系统缓存管理
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request         $request
+     * @return InertiaResponse
+     */
+    public function cache(Request $request,CacheService $cacheService):InertiaResponse
+    {
+        $result = $cacheService->getCacheSize();
+        return Inertia::render('SystemConfig/Cache', [
+            'cacheSize' => $result['size'],
+            'cacheTotal' => $result['total']
+        ]);
+    }
+
+    /**
+     * 清空系统缓存
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request      $request
+     * @param  CacheService $cacheService
+     * @return JsonResponse
+     */
+    public function cacheClear(Request $request,CacheService $cacheService):JsonResponse
+    {
+        $cacheService->clear();
+        return $this->success();
     }
 }

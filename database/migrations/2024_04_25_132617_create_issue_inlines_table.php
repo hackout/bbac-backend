@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->longText("affect_scope")->nullable()->comment("影响范围");
             $table->string("ira")->nullable()->comment("责任人");
             $table->integer("issue_description")->default(0)->comment("问题描述");
-            $table->integer("defect_level")->default(0)->comment("问题等级");
+            $table->integer("defect_level")->default(0)->comment("缺陷等级");
             $table->longText("reason")->nullable()->comment("原因分级");
             $table->longText("cause")->nullable()->comment("根本原因");
             $table->integer("category")->default(0)->comment("问题等级");

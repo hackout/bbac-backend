@@ -1,6 +1,10 @@
 import dayjs from "dayjs";
 import Cookies from "js-cookie";
 import { ElMessage } from "element-plus";
+import html2canvas from 'html2canvas';
+import JsPDF from 'jspdf';
+import * as XLSX from "xlsx";
+import { saveAs } from 'file-saver'
 
 let tool = {}
 
@@ -204,4 +208,99 @@ tool.error = (page) => {
     var name = Object.keys(page)[0]
     ElMessage.error(typeof page[name] == 'object' ? page[name][0] : page[name])
 }
+
+/**
+ * 获取设备DPI
+ * @returns 
+ */
+tool.initDpi = () => {
+    const div = document.createElement('div')
+    div.style.cssText = 'height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;'
+    document.body.appendChild(div)
+    const devicePixelRatio = window.devicePixelRatio || 1,
+        dpi = div.offsetWidth * devicePixelRatio;
+    var style = document.createElement('style');
+    style.innerHTML = `:root{
+        --web-pixel-ratio: ${dpi};
+    }`;
+    document.head.appendChild(style);
+}
+
+/**
+ * 保存元素到PDF
+ * @param {documentElement} ele 
+ * @param {string} pdfName 
+ */
+tool.makePDF = (ele, pdfName) => {
+    let eleW = ele.offsetWidth;
+    let eleH = ele.offsetHeight;
+    let eleOffsetTop = ele.offsetTop;
+    let eleOffsetLeft = ele.offsetLeft;
+    var canvas = document.createElement("canvas");
+    var abs = 0;
+    let win_in = document.documentElement.clientWidth || document.body.clientWidth;
+    let win_out = window.innerWidth;
+    if (win_out > win_in) {
+        abs = (win_out - win_in) / 2;
+    }
+    canvas.width = eleW * 2;
+    canvas.height = eleH * 2;
+    var context = canvas.getContext("2d");
+    context.scale(2, 2);
+    context.translate(-eleOffsetLeft - abs, -eleOffsetTop);
+    html2canvas(ele, {
+        dpi: 300,
+        scale: 3,
+        useCORS: true
+    }).then((canvas) => {
+
+        var contentWidth = canvas.width;
+        var contentHeight = canvas.height;
+        var pageHeight = contentWidth / 592.28 * 841.89;
+        var leftHeight = contentHeight;
+        var position = 0;
+        var imgWidth = 595.28;
+        var imgHeight = 595.28 / contentWidth * contentHeight;
+        var pageData = canvas.toDataURL('image/jpeg', 1.0);
+        var pdf = new JsPDF('', 'pt', 'a4');
+        if (leftHeight < pageHeight) {
+            pdf.addImage(pageData, 'JPEG', 0, 40, imgWidth, imgHeight);
+        } else {    // 分页
+            while (leftHeight > 0) {
+                pdf.addImage(pageData, 'JPEG', 0, position, imgWidth, imgHeight);
+                leftHeight -= pageHeight;
+                position -= 841.89;
+                if (leftHeight > 0) {
+                    pdf.addPage();
+                }
+            }
+        }
+        pdf.save(pdfName);
+    })
+
+}
+
+/**
+ * 导出Excel
+ * @param {string} tableId 
+ * @param {string} fileName 
+ */
+tool.makeExcel = (tableId, fileName) => {
+    var wb = XLSX.utils.table_to_book(document.querySelector(tableId),{raw:true});
+    var wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+    function s2ab(s) {
+        var buf = new ArrayBuffer(s.length);
+        var view = new Uint8Array(buf);
+        for (var i = 0; i < s.length; i++) {
+            view[i] = s.charCodeAt(i) & 0xff;
+        }
+        return buf;
+    }
+
+    saveAs(new Blob([s2ab(wbOut)], { type: 'application/octet-stream' }), fileName);
+}
+
+
+
 export default tool

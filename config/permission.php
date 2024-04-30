@@ -97,7 +97,17 @@ return [
     ],
     [
         'name' => '系统设置',
-        'code' => 'system.index'
+        'code' => 'system_config.index',
+        'children' => [
+            [
+                'name' => '缓存管理',
+                'code' => 'system_config.cache'
+            ],
+            [
+                'name' => '清理缓存',
+                'code' => 'system_config.cache_clear'
+            ]
+        ]
     ],
     [
         'name' => '员工管理',
@@ -450,118 +460,8 @@ return [
                 'code' => 'examine.option'
             ],
             [
-                'name' => '导出数据',
-                'code' => 'examine.export'
-            ],
-            [
                 'name' => '删除数据',
                 'code' => 'examine.delete'
-            ]
-        ]
-    ],
-    [
-        'name' => '考核定义',
-        'code' => 'commit.index',
-        'children' => [
-            [
-                'name' => '在线考核',
-                'code' => 'commit.inline'
-            ],
-            [
-                'name' => '产品考核',
-                'code' => 'commit.product'
-            ],
-            [
-                'name' => '整车服务',
-                'code' => 'commit.service'
-            ],
-            [
-                'name' => '添加数据',
-                'code' => 'commit.create'
-            ],
-            [
-                'name' => '导入数据',
-                'code' => 'commit.import'
-            ],
-            [
-                'name' => '下载模板',
-                'code' => 'commit.template'
-            ],
-            [
-                'name' => '获取列表',
-                'code' => 'commit.list'
-            ],
-            [
-                'name' => '导出数据',
-                'code' => 'commit.export'
-            ],
-            [
-                'name' => '获取变更项',
-                'code' => 'commit.changed'
-            ],
-            [
-                'name' => '更新数据',
-                'code' => 'commit.update'
-            ],
-            [
-                'name' => '查看详情',
-                'code' => 'commit.detail'
-            ],
-            [
-                'name' => '提交审核',
-                'code' => 'commit_approve.create'
-            ],
-            [
-                'name' => '删除数据',
-                'code' => 'commit.delete'
-            ]
-        ]
-    ],
-    [
-        'name' => '考核定义-考核项',
-        'code' => 'commit_item.index',
-        'children' => [
-            [
-                'name' => '获取列表',
-                'code' => 'commit_item.list'
-            ],
-            [
-                'name' => '添加数据',
-                'code' => 'commit_item.create'
-            ],
-            [
-                'name' => '更新数据',
-                'code' => 'commit_item.update'
-            ],
-            [
-                'name' => '上传附件',
-                'code' => 'commit_item.upload'
-            ],
-            [
-                'name' => '删除附件',
-                'code' => 'commit_item.upload_delete'
-            ],
-            [
-                'name' => '数据排序',
-                'code' => 'commit_item.order'
-            ],
-            [
-                'name' => '删除数据',
-                'code' => 'commit_item.delete'
-            ]
-        ]
-    ],
-    [
-        'name' => '考核定义-实际测量项',
-        'code' => 'commit_item_option.index',
-        'children' => [
-            [
-                'name' => '获取列表',
-                'code' => 'commit_item_option.list'
-            ],
-            [
-                'name' => '保存数据',
-                'code' => 'commit_item_option.save'
             ]
         ]
     ],
@@ -748,5 +648,245 @@ return [
                 'code' => 'part.template'
             ]
         ]
+    ],
+    [
+        'name' => '整车服务-考核定义',
+        'code' => 'commit_vehicle.index',
+        'children' => [
+            [
+                'name' => '获取列表',
+                'code' => 'commit_vehicle.list'
+            ],
+            [
+                'name' => '创建数据',
+                'code' => 'commit_vehicle.create'
+            ],
+            [
+                'name' => '更新数据',
+                'code' => 'commit_vehicle.update'
+            ],
+            [
+                'name' => '获取详情',
+                'code' => 'commit_vehicle.detail'
+            ],
+            [
+                'name' => '获取变更项',
+                'code' => 'commit_vehicle.changed'
+            ],
+            [
+                'name' => '送审数据',
+                'code' => 'commit_vehicle.approve'
+            ],
+            [
+                'name' => '删除数据',
+                'code' => 'commit_vehicle.delete'
+            ],
+            [
+                'name' => '导入数据',
+                'code' => 'commit_vehicle.import'
+            ],
+            [
+                'name' => '下载模板',
+                'code' => 'commit_vehicle.template'
+            ],
+            [
+                'name' => '选项列表',
+                'code' => 'commit_vehicle.option'
+            ],
+        ]
+    ],
+    [
+        'name' => '整车服务-考核定义-考核项',
+        'code' => 'commit_vehicle_item.index',
+        'children' => [
+            [
+                'name' => '获取列表',
+                'code' => 'commit_vehicle_item.list'
+            ],
+            [
+                'name' => '创建数据',
+                'code' => 'commit_vehicle_item.create'
+            ],
+            [
+                'name' => '变更排序',
+                'code' => 'commit_vehicle_item.order'
+            ],
+            [
+                'name' => '上传图示',
+                'code' => 'commit_vehicle_item.upload'
+            ],
+            [
+                'name' => '更新数据',
+                'code' => 'commit_vehicle_item.update'
+            ],
+            [
+                'name' => '删除数据',
+                'code' => 'commit_vehicle_item.delete'
+            ]
+        ]
+    ],
+    [
+        'name' => '在线考核-考核定义',
+        'code' => 'commit_inline.index',
+        'children' => [
+            [
+                'name' => '获取列表',
+                'code' => 'commit_inline.list'
+            ],
+            [
+                'name' => '创建数据',
+                'code' => 'commit_inline.create'
+            ],
+            [
+                'name' => '更新数据',
+                'code' => 'commit_inline.update'
+            ],
+            [
+                'name' => '获取详情',
+                'code' => 'commit_inline.detail'
+            ],
+            [
+                'name' => '获取变更项',
+                'code' => 'commit_inline.changed'
+            ],
+            [
+                'name' => '送审数据',
+                'code' => 'commit_inline.approve'
+            ],
+            [
+                'name' => '删除数据',
+                'code' => 'commit_inline.delete'
+            ],
+            [
+                'name' => '导入数据',
+                'code' => 'commit_inline.import'
+            ],
+            [
+                'name' => '下载模板',
+                'code' => 'commit_inline.template'
+            ],
+            [
+                'name' => '选项列表',
+                'code' => 'commit_inline.option'
+            ],
+        ]
+    ],
+    [
+        'name' => '在线考核-考核定义-考核项',
+        'code' => 'commit_inline_item.index',
+        'children' => [
+            [
+                'name' => '获取列表',
+                'code' => 'commit_inline_item.list'
+            ],
+            [
+                'name' => '创建数据',
+                'code' => 'commit_inline_item.create'
+            ],
+            [
+                'name' => '变更排序',
+                'code' => 'commit_inline_item.order'
+            ],
+            [
+                'name' => '修改测量项',
+                'code' => 'commit_inline_item.option'
+            ],
+            [
+                'name' => '上传图示',
+                'code' => 'commit_inline_item.upload'
+            ],
+            [
+                'name' => '更新数据',
+                'code' => 'commit_inline_item.update'
+            ],
+            [
+                'name' => '删除数据',
+                'code' => 'commit_inline_item.delete'
+            ]
+        ]
+    ],
+    [
+        'name' => '产品考核-考核定义',
+        'code' => 'commit_product.index',
+        'children' => [
+            [
+                'name' => '获取列表',
+                'code' => 'commit_product.list'
+            ],
+            [
+                'name' => '创建数据',
+                'code' => 'commit_product.create'
+            ],
+            [
+                'name' => '更新数据',
+                'code' => 'commit_product.update'
+            ],
+            [
+                'name' => '获取详情',
+                'code' => 'commit_product.detail'
+            ],
+            [
+                'name' => '获取变更项',
+                'code' => 'commit_product.changed'
+            ],
+            [
+                'name' => '送审数据',
+                'code' => 'commit_product.approve'
+            ],
+            [
+                'name' => '删除数据',
+                'code' => 'commit_product.delete'
+            ],
+            [
+                'name' => '导入数据',
+                'code' => 'commit_product.import'
+            ],
+            [
+                'name' => '下载模板',
+                'code' => 'commit_product.template'
+            ],
+            [
+                'name' => '选项列表',
+                'code' => 'commit_product.option'
+            ],
+        ]
+    ],
+    [
+        'name' => '产品考核-考核定义-考核项',
+        'code' => 'commit_product_item.index',
+        'children' => [
+            [
+                'name' => '获取列表',
+                'code' => 'commit_product_item.list'
+            ],
+            [
+                'name' => '创建数据',
+                'code' => 'commit_product_item.create'
+            ],
+            [
+                'name' => '变更排序',
+                'code' => 'commit_product_item.order'
+            ],
+            [
+                'name' => '修改测量项',
+                'code' => 'commit_product_item.option'
+            ],
+            [
+                'name' => '上传图示',
+                'code' => 'commit_product_item.upload'
+            ],
+            [
+                'name' => '更新数据',
+                'code' => 'commit_product_item.update'
+            ],
+            [
+                'name' => '删除数据',
+                'code' => 'commit_product_item.delete'
+            ]
+        ]
+    ],
+    [
+        'name' => '自定义导出',
+        'code' => 'custom.export'
     ]
 ];

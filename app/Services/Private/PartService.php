@@ -3,14 +3,9 @@ namespace App\Services\Private;
 
 use App\Models\Part;
 use App\Models\User;
-use App\Packages\Department\DepartmentRole;
 use App\Services\Service;
-use App\Traits\ExportTemplateTrait;
-use App\Traits\ImportTemplateTrait;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * 零件清单
@@ -34,7 +29,6 @@ class PartService extends Service
      */
     public function importPart(array $data)
     {
-
         $sql = [
             'name' => $data['name'],
             'name_en' => $data['name_en'],
@@ -52,4 +46,14 @@ class PartService extends Service
         }
     }
 
+    /**
+     * 获取零件选项列表
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return Collection
+     */
+    public function getOption(): Collection
+    {
+        return parent::getAll()->map(fn(Part $item) => ['value' => $item->id, 'name' => $item->number]);
+    }
 }

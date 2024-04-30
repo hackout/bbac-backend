@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Traits\PrimaryKeyUuidTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
+use Spatie\MediaLibrary\HasMedia;
+use App\Traits\PrimaryKeyUuidTrait;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * 整车服务-考核项
@@ -31,6 +31,7 @@ use Carbon\Carbon;
  * @property-read ?Carbon $updated_at 更新时间
  * @property-read ?CommitVehicle $commit 考核模板
  * @property-read ?Collection<Media> $media 附件
+ * @property-read ?array<array<string,string>> $thumbnails 图示
  */
 class CommitVehicleItem extends Model implements HasMedia
 {
@@ -40,67 +41,6 @@ class CommitVehicleItem extends Model implements HasMedia
      * 附件Key
      */
     const MEDIA_FILE = 'file';
-
-    /**
-     * 扭矩监控
-     */
-    const TYPE_TORQUE = 1;
-
-    /**
-     * 尺寸测量
-     */
-    const TYPE_DIMENSIONAL = 2;
-
-    /**
-     * 外观检测
-     */
-    const TYPE_APPEARANCE = 3;
-
-    /**
-     * 过程监控
-     */
-    const TYPE_PROCESS = 4;
-
-    /**
-     * 墨水测试
-     */
-    const TYPE_INK = 5;
-
-    /**
-     * 撕胶测试
-     */
-    const TYPE_TEAR = 6;
-
-    /**
-     * 触发考核
-     */
-    const TYPE_TRIGGER = 7;
-
-    /**
-     * 试装支持
-     */
-    const TYPE_TRIAL = 8;
-
-    /**
-     * 项目支持
-     */
-    const TYPE_PROJECT = 9;
-
-
-    /**
-     * 测量检查
-     */
-    const TYPE_MEASUREMENT = 10;
-
-    /**
-     * 目视检查
-     */
-    const TYPE_VISUAL = 11;
-
-    /**
-     * 全部
-     */
-    const TYPE_ALL = 12;
 
     protected $fillable = [
         'id',
@@ -123,6 +63,11 @@ class CommitVehicleItem extends Model implements HasMedia
         'updated_at' => 'datetime'
     ];
 
+    public $appends = ['thumbnails'];
+
+    public $hidden = ['media'];
+
+
     /**
      * 考核模板
      *
@@ -132,5 +77,18 @@ class CommitVehicleItem extends Model implements HasMedia
     public function commit()
     {
         return $this->belongsTo(CommitVehicle::class);
+    }
+
+    public function getThumbnailsAttribute()
+    {
+        if (!$medias = $this->getMedia(self::MEDIA_FILE))
+            return [];
+        return $medias->map(function ($item) {
+            return [
+                'name' => $item->file_name,
+                'url' => $item->original_url,
+                'uuid' => $item->uuid
+            ];
+        });
     }
 }

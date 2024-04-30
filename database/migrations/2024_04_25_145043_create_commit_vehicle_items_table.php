@@ -15,12 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary()->unique()->comment("主键");
             $table->uuid('unique_id')->nullable()->comment("唯一标识");
             $table->uuid('commit_vehicle_id')->nullable()->comment('整车服务考核(历史)ID');
-            $table->string("content")->nullable()->comment("工作内容");
-            $table->string("content_en")->nullable()->comment("工作内容(英)");
-            $table->string("standard")->nullable()->comment("检查标准");
-            $table->string("standard_en")->nullable()->comment("检查标准(英)");
-            $table->string("other")->nullable()->comment("其他要求");
-            $table->string("other_en")->nullable()->comment("其他要求(英)");
+            $table->longText("content")->nullable()->comment("工作内容");
+            $table->longText("content_en")->nullable()->comment("工作内容(英)");
+            $table->longText("standard")->nullable()->comment("检查标准");
+            $table->longText("standard_en")->nullable()->comment("检查标准(英)");
+            $table->longText("other")->nullable()->comment("其他要求");
+            $table->longText("other_en")->nullable()->comment("其他要求(英)");
             $table->tinyInteger('type')->default(0)->comment("考核项类型");
             $table->integer('sort_order')->default(0)->comment('序号');
             $table->timestamps();

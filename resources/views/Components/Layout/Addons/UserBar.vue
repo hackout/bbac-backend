@@ -61,7 +61,7 @@
 					</div>
 				</div>
 				<div class="notice-content" v-if="item.extra_type != 'torque' && item.extra_type != 'examine'">
-					<article v-html="extraItem.content">
+					<article class="notice-content-article" v-html="extraItem.content">
 					</article>
 				</div>
 				<div class="notice-content" v-if="item.extra_type == 'examine'">
@@ -517,7 +517,19 @@ export default {
 
 	&-content {
 		width: 100%;
-		margin-bottom: 20px
+
+		margin-bottom: 20px;
+
+		&-article {
+			width: 100%;
+			height: auto;
+			font-size: 14px;
+
+			:deep(img) {
+				max-width: 100% !important;
+				max-height: 100% !important;
+			}
+		}
 	}
 
 	&-approve {

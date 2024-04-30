@@ -1,11 +1,8 @@
 <?php
 namespace App\Services\Backend;
 
-use App\Models\TorqueItemDetail;
-use App\Models\User;
-use App\Models\TorqueChangeRecord;
 use App\Services\Service;
-use Illuminate\Support\Collection;
+use App\Models\TorqueItemDetail;
 
 /**
  * 扭矩详情服务

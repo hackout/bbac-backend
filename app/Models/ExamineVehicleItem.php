@@ -33,6 +33,7 @@ use Carbon\Carbon;
  * @property-read ?ExamineVehicle $examine 考核模板
  * @property-read ?CommitVehicleItem $commit_item 考核项
  * @property-read ?Collection<Media> $media 附件
+ * @property-read ?array<array<string,string>> $thumbnails 图示
  */
 class ExamineVehicleItem extends Model implements HasMedia
 {
@@ -42,67 +43,7 @@ class ExamineVehicleItem extends Model implements HasMedia
      * 附件Key
      */
     const MEDIA_FILE = 'file';
-
-    /**
-     * 扭矩监控
-     */
-    const TYPE_TORQUE = 1;
-
-    /**
-     * 尺寸测量
-     */
-    const TYPE_DIMENSIONAL = 2;
-
-    /**
-     * 外观检测
-     */
-    const TYPE_APPEARANCE = 3;
-
-    /**
-     * 过程监控
-     */
-    const TYPE_PROCESS = 4;
-
-    /**
-     * 墨水测试
-     */
-    const TYPE_INK = 5;
-
-    /**
-     * 撕胶测试
-     */
-    const TYPE_TEAR = 6;
-
-    /**
-     * 触发考核
-     */
-    const TYPE_TRIGGER = 7;
-
-    /**
-     * 试装支持
-     */
-    const TYPE_TRIAL = 8;
-
-    /**
-     * 项目支持
-     */
-    const TYPE_PROJECT = 9;
-
-
-    /**
-     * 测量检查
-     */
-    const TYPE_MEASUREMENT = 10;
-
-    /**
-     * 目视检查
-     */
-    const TYPE_VISUAL = 11;
-
-    /**
-     * 全部
-     */
-    const TYPE_ALL = 12;
+    
     protected $fillable = [
         'id',
         'examine_vehicle_id',
@@ -125,6 +66,10 @@ class ExamineVehicleItem extends Model implements HasMedia
         'updated_at' => 'datetime'
     ];
 
+    public $appends = ['thumbnails'];
+
+    public $hidden = ['media'];
+
     /**
      * 考核模板
      *
@@ -145,5 +90,18 @@ class ExamineVehicleItem extends Model implements HasMedia
     public function commit_item()
     {
         return $this->belongsTo(CommitVehicleItem::class);
+    }
+    
+    public function getThumbnailsAttribute()
+    {
+        if (!$medias = $this->getMedia(self::MEDIA_FILE))
+            return [];
+        return $medias->map(function ($item) {
+            return [
+                'name' => $item->file_name,
+                'url' => $item->original_url,
+                'uuid' => $item->uuid
+            ];
+        });
     }
 }

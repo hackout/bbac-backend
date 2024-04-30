@@ -30,7 +30,11 @@ class DictService extends Service
     public function getOptionByCode(string $code): Collection
     {
         if (!$item = parent::find(['code' => $code])) {
-            throw ValidationException::withMessages(['code.incorrect' => '字典信息错误']);
+            if (request()->ajax()) {
+                throw ValidationException::withMessages(['code.incorrect' => '字典信息错误']);
+            } else {
+                abort(500);
+            }
         }
         return $item->items->map(fn($option) => ['value' => $option->content, 'name' => $option->name])->values();
     }

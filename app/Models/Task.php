@@ -2,14 +2,54 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Traits\PrimaryKeyUuidTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * 任务单模型
+ *
+ * @author Dennis Lui <hackout@vip.qq.com>
+ * @property string $id 主键
+ * @property string $name 任务名称
+ * @property ?string $user_id 用户
+ * @property ?string $examine_id 考核ID
+ * @property ?string $task_cron_id 任务生产ID
+ * @property int $type 考核类型
+ * @property int $plant 工厂
+ * @property int $line 产线
+ * @property int $engine 机型
+ * @property int $status 项目阶段
+ * @property ?string $assembly_id 总成
+ * @property int $task_status 任务状态
+ * @property string $number 任务单号
+ * @property ?float $period 工时
+ * @property ?Carbon $start_at 开始时间
+ * @property ?Carbon $end_at 结束时间
+ * @property ?Carbon $valid_at 过期时间
+ * @property ?array $original_examine 原始信息
+ * @property-read int $items_count 考核项数量
+ * @property-read ?Carbon $created_at 创建时间
+ * @property-read ?Carbon $updated_at 更新时间
+ * @property-read ?Assembly $assembly 总成
+ * @property-read null|ExamineInline|ExamineProduct|ExamineVehicle $examine 考核模板
+ * @property-read ?User $user 考核项数量
+ * @property-read ?TaskCron $task_cron 考核项数量
+ * @property-read ?Collection<WorkItem> $work_items 任务记录
+ * @property-read ?Collection<TaskItem> $items 考核项数量
+ */
 class Task extends Model
 {
     use HasFactory, PrimaryKeyUuidTrait;
+
+    /**
+     * 附件Key 同考核项附件Key
+     */
+    const MEDIA_FILE = "file";
 
     /**
      * 在线考核
@@ -93,7 +133,7 @@ class Task extends Model
      * 总成号
      *
      * @author Dennis Lui <hackout@vip.qq.com>
-     * @return null|BelongsTo<Assembly>|Assembly|Model
+     * @return null|BelongsTo<Assembly>|Assembly
      */
     public function assembly()
     {
@@ -104,18 +144,24 @@ class Task extends Model
      * 考核模板
      *
      * @author Dennis Lui <hackout@vip.qq.com>
-     * @return null|BelongsTo<Examine>|Examine|Model
+     * @return null|BelongsTo<ExamineInline|ExamineProduct|ExamineVehicle>|ExamineInline|ExamineProduct|ExamineVehicle
      */
     public function examine()
     {
-        return $this->belongsTo(Examine::class);
+        if ($this->type == self::TYPE_INLINE) {
+            return $this->belongsTo(ExamineInline::class, 'examine_id');
+        }
+        if ($this->type == self::TYPE_PRODUCT) {
+            return $this->belongsTo(ExamineProduct::class, 'examine_id');
+        }
+        return $this->belongsTo(ExamineVehicle::class, 'examine_id');
     }
 
     /**
      * 已分配员工
      *
      * @author Dennis Lui <hackout@vip.qq.com>
-     * @return null|BelongsTo<User>|User|Model
+     * @return null|BelongsTo<User>|User
      */
     public function user()
     {
@@ -126,21 +172,33 @@ class Task extends Model
      * 任务配置
      *
      * @author Dennis Lui <hackout@vip.qq.com>
-     * @return null|BelongsTo<TaskCron>|TaskCron|Model
+     * @return null|BelongsTo<TaskCron>|TaskCron
      */
     public function task_cron()
     {
         return $this->belongsTo(TaskCron::class);
     }
 
+    /**
+     * 员工工作项
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return HasMany|Collection<WorkItem>
+     */
     public function work_items()
     {
         return $this->hasMany(WorkItem::class);
     }
 
+    /**
+     * 考核项数量
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return null|Collection<TaskItem>|HasMany
+     */
     public function items()
     {
-        return $this->hasMany(TaskItem::class)->orderBy('sort_order','DESC');
+        return $this->hasMany(TaskItem::class)->orderBy('sort_order', 'DESC');
     }
 
     public function getItemsCountAttribute()

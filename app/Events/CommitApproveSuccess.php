@@ -2,14 +2,12 @@
 
 namespace App\Events;
 
-use App\Models\Commit;
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Foundation\Events\Dispatchable;
+use App\Models\CommitInline;
+use App\Models\CommitVehicle;
+use App\Models\CommitProduct;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Broadcasting\InteractsWithSockets;
 
 class CommitApproveSuccess
 {
@@ -18,9 +16,8 @@ class CommitApproveSuccess
     /**
      * Create a new event instance.
      */
-    public function __construct(public Commit $commit)
+    public function __construct(public CommitVehicle|CommitInline|CommitProduct $commit)
     {
-        //
     }
-    
+
 }

@@ -155,17 +155,17 @@ return [
             ],
             [
                 'name' => '在线考核',
-                'path' => 'commit.inline',
+                'path' => 'commit_inline.index',
                 'show' => true,
             ],
             [
                 'name' => '产品考核',
-                'path' => 'commit.product',
+                'path' => 'commit_product.index',
                 'show' => true,
             ],
             [
                 'name' => '整车服务',
-                'path' => 'commit.service',
+                'path' => 'commit_vehicle.index',
                 'show' => true,
             ]
         ]
@@ -264,23 +264,23 @@ return [
     [
         'name' => '整车服务',
         'intro' => 'i-Service',
-        'path' => 'issue.service',
+        'path' => 'vehicle.index',
         'icon' => 'el-icon-stopwatch',
         'show' => true,
         'children' => [
             [
                 'name' => '待处理问题',
-                'path' => 'issue.service',
+                'path' => 'vehicle.index',
                 'show' => true,
             ],
             [
                 'name' => '已处理问题',
-                'path' => 'issue.finish',
+                'path' => 'vehicle.finish',
                 'show' => true,
             ],
             [
                 'name' => '动态考核',
-                'path' => 'service.dynamic',
+                'path' => 'vehicle.task',
                 'show' => true,
             ]
         ]
@@ -339,6 +339,11 @@ return [
             [
                 'name' => '后台访问日志',
                 'path' => 'user_log.index',
+                'show' => true,
+            ],
+            [
+                'name' => '系统缓存',
+                'path' => 'system_config.cache',
                 'show' => true,
             ]
         ]

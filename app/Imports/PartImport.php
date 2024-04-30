@@ -42,9 +42,9 @@ class PartImport implements ToCollection
                     'name' => trim($row[$map['name']]),
                     'name_en' => trim($row[$map['name_en']]),
                     'number' => trim($row[$map['number']]),
-                    'is_esd' => !empty ($row[$map['is_esd']]),
-                    'is_traceability' => !empty ($row[$map['is_traceability']]),
-                    'is_one_time' => !empty ($row[$map['is_one_time']]),
+                    'is_esd' => trim($row[$map['is_esd']]) == 'Y',
+                    'is_traceability' => trim($row[$map['is_traceability']]) == 'Y',
+                    'is_one_time' => trim($row[$map['is_one_time']]) == 'Y',
                     'assemblies' => []
                 ];
                 if ($assemblies) {

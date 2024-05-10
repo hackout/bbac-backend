@@ -8,38 +8,18 @@
                 <div class="page-search-form">
                     <el-form ref="query" inline>
                         <el-form-item>
-                            <el-button type="primary" @click="exportItem" icon="el-icon-lightning">
+                            <el-button type="primary" @click="exportPpt" icon="el-icon-lightning">
                                 <span>导出</span>
-                            </el-button>
-                            <el-button type="primary" icon="el-icon-printer">
-                                <span>打印</span>
                             </el-button>
                         </el-form-item>
                     </el-form>
                 </div>
             </div>
-            <div class="report" id="printer">
+            <ReportBox modeName="vehicle" title="Engine & Battery Q-Loop4 Issue Report" footer="1/1 QM E&B | AFS">
                 <table class="report-table" border="1" id="printer-table">
                     <colgroup>
                         <col v-for="i in 100" width="1%" />
                     </colgroup>
-                    <thead class="report-title">
-                        <tr>
-                            <th></th>
-                            <th colspan="3">
-                                <div class="left"><img src="/assets/imgs/report_arrow.png" /></div>
-                            </th>
-                            <th colspan="72" align="left" valign="middle">Engine & Battery Q-Loop4 Issue Report</th>
-                            <th colspan="24">
-                                <div class="right"><img src="/assets/imgs/report_icon.png" /></div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="report-empty-20 report-border-bottom">
-                            <td colspan="100"></td>
-                        </tr>
-                    </tbody>
                     <thead>
                         <tr class="report-border">
                             <td colspan="4" class="report-table-left-border">
@@ -159,22 +139,13 @@
                             <td colspan="100"></td>
                         </tr>
                     </tbody>
-                    <tfoot>
-                        <tr class="report-page">
-                            <td colspan="100">
-                                <div>
-                                    <span>1/5</span>
-                                    <span>QM E&B | AFS</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tfoot>
                 </table>
-            </div>
+            </ReportBox>
         </div>
     </Layout>
 </template>
 <script>
+import ppt from '@/utils/ppt'
 export default {
     props: {
         motorcycle_type: {
@@ -243,7 +214,7 @@ export default {
             print: {
                 id: 'printer',
                 popTitle: 'Engine & Battery Q-Loop4 Issue Report'
-            },
+            }
         }
     },
     mounted() {
@@ -280,28 +251,64 @@ export default {
         goList() {
             this.$goTo('vehicle.index')
         },
-        getPDF() {
-            this.$tool.makePDF(
-                document.querySelector("#pdf"),
-                "Engine & Battery Q-Loop4 Issue Report"
-            );
+        exportExcel() {
+            this.exportItem('excel')
         },
-        async exportItem() {
-            let element = this.$tableParse.make('#printer-table')
-            console.log(element)
-            let res = await this.$axios.post(this.$route('custom.export'),{
-                data: element
+        exportPpt() {
+            let pres = ppt.init();
+            pres.title("Engine & Battery Q-Loop4 Issue Report")
+            let theadStyle = { text: 'No.', options: { valign: 'middle', fill: { color: '335CA1' }, border: { type: 'solid', pt: '1', color: '27406A' }, color: 'FFFFFF', w: '5%', h: 0.2, align: 'center', fontSize: '7' } };
+            let valueStyle = { text: '-', options: { valign: 'middle', border: { type: 'solid', pt: '1', color: '27406A' }, color: '27406A', w: '5%', h: 0.2, align: 'center', fontSize: '7' } };
+            let rows = [
+                [
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'No.', w: '4%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Date', w: '6%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Shift' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Plant' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Sensor' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'V-Type' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'E&B Type' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'PN', w: '6%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'EN/BN', w: '13%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Issue Description', w: '14%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Root Cause', w: '14%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'SOMA', w: '14%' }),
+                    Object.assign(this.$tool.objCopy(theadStyle), { text: 'Status', w: '4%' }),
+                ],
+                [
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: '1', w: '4%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$tool.dateFormat(this.item.created_at, 'YYYY-MM-DD'), w: '6%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$status('service_shift', this.item.shift) }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$status('service_factory', this.item.plant) }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$status('sensor_point', this.item.sensor) }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$status('motorcycle_type', this.item.car_type) }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$status('eb_type', this.item.eb_type) }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.item.product_number, w: '6%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.item.eb_number, w: '13%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.item.description, w: '14%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.item.cause, w: '14%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.item.soma, w: '14%' }),
+                    Object.assign(this.$tool.objCopy(valueStyle), { text: this.$status('issue_status', this.item.status), w: '4%' }),
+                ]
+            ]
+            ppt.table(rows, { w: 10, x: 0, y: 0.75 })
+            let x = 0, y = 1.7716535;
+            this.pictures.forEach((z) => {
+                z.forEach((n, i) => {
+                    ppt.item('Picture No.' + (i + 1), {
+                        x: x, y: y, w: 1.5, h: 0.1968504,
+                        valign: 'middle', fill: { color: '335CA1' }, color: 'FFFFFF', fontSize: '7',
+                        border: { type: 'solid', pt: '1', color: '27406A' }, align: 'center'
+                    }, {
+                        path: n.url, h: 0.984252, w: 1.5, x: x, y: y + 0.1968504,
+                        fill: { color: '335CA1' }, border: { type: 'solid', pt: '1', color: '27406A' }
+                    })
+                    x += 1.7
+                })
+                y += 2
             })
-            if(res.code == this.$config.successCode)
-            {
-                this.$message.success('报表正在打包中,3秒后自动下载');
-                setTimeout(() => {
-                    this.$download(res.data)
-                }, 3000)
-            }else{
-                this.$message.error(res.message)
-            }
-            /**this.$tool.makeExcel('printer-table', (this.item.product_number + '-' + this.item.eb_number) + '.xlsx')**/
+            ppt.footer('1/1 QM E&B | AFS')
+            ppt.save()
         }
     }
 }
@@ -310,7 +317,6 @@ export default {
 <style scoped lang="scss">
 .picture {
     .picture-title {
-
         height: 30px;
         width: 100%;
         background-color: var(--el-report-main);
@@ -320,6 +326,10 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
+
+        td {
+            background-color: var(--el-report-main);
+        }
     }
 
     .picture-image {

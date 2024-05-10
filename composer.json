@@ -18,7 +18,7 @@
         "mews/captcha": "^3.3",
         "overtrue/laravel-pinyin": "^5.1",
         "php-ffmpeg/php-ffmpeg": "^1.2",
-        "phpoffice/phppresentation": "^1.0",
+        "phpoffice/phppresentation": "dev-develop",
         "phpoffice/phpword": "^1.2",
         "smalot/pdfparser": "^2.9",
         "spatie/laravel-medialibrary": "^11.0",

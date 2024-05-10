@@ -20,7 +20,8 @@ export default {
     data() {
         return {
             isActivate: false,
-            myChart: null
+            myChart: null,
+            drawUrl: null
         }
     },
     watch: {
@@ -58,6 +59,15 @@ export default {
             myChart.setOption(this.myOptions);
             this.myChart = myChart;
             window.addEventListener('resize', () => myChart.resize());
+        },
+        initUrl(){
+            this.drawUrl = this.myChart.getDataURL({
+                pixelRatio: 2,
+                backgroundColor: '#fff',
+            })
+        },
+        getUrl() {
+            return this.drawUrl
         }
     }
 }

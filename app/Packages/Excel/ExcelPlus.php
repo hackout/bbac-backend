@@ -34,11 +34,24 @@ class ExcelPlus
         if ($number > $maxLength) {
             throw new Exception("最大值不超过$maxLength");
         }
-        $strings = [
-            intval($number / $num) > $num ? intval(intval($number / $num) / $num) : 0,
-            $number > $num ? intval($number / $num) % $num : 0,
-            $number % $num
-        ];
+        $strings = [];
+        if(intval($number / $num) > $num)
+        {
+            $strings[] = intval(intval($number / $num) / $num);
+        }else{
+            $strings[] = 0;
+        }
+        if($number > $num)
+        {
+            $strings[] = intval($number / $num) % $num;
+        }else{
+            $strings[] = 0;
+        }
+        $strings[] = $number % $num;
+        if(!intval(implode('',$strings)))
+        {
+            $strings[0] = 26;
+        }
         $result = '';
         foreach ($strings as $key) {
             if ($key) {

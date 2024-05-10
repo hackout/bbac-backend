@@ -19,12 +19,12 @@ import TopNav from '@view/Components/Addons/TopNav.vue';
 import Chart from '@view/Components/Addons/Chart.vue';
 import Editor from '@view/Components/Addons/Editor.vue';
 import DataTable from '@view/Components/Addons/DataTable.vue';
+import ReportBox from '@view/Components/Addons/ReportBox.vue';
+import ReportBlock from '@view/Components/Addons/ReportBlock.vue';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import mixinJs from '@/utils/mixin';
-import VueDraggable from 'vue-draggable'; 
-import tableParse from '@/utils/tableParse';
-
+import VueDraggable from 'vue-draggable';
 
 const ZiggyFunc = (name, params, absolute, config = Ziggy) => ZiggyJs(name, params, absolute, config);
 createInertiaApp({
@@ -51,6 +51,8 @@ createInertiaApp({
         app.component('TopNav', TopNav)
         app.component('Editor', Editor)
         app.component('Chart', Chart)
+        app.component('ReportBox', ReportBox)
+        app.component('ReportBlock', ReportBlock)
         app.component('DataTable', DataTable)
         app.component('VueJsonPretty', VueJsonPretty)
         app.provide('route', ZiggyFunc);
@@ -59,7 +61,6 @@ createInertiaApp({
         app.config.globalProperties.$tool = tool
         app.config.globalProperties.$axios = axios
         app.config.globalProperties.$config = config
-        app.config.globalProperties.$tableParse = tableParse
         window.document.getElementById('pageLoading').remove();
         app.mixin(mixinJs)
         tool.initDpi()

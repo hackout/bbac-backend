@@ -1,5 +1,5 @@
 @font-face {
-    font-family: MOAM91;
+    font-family: MOAM391;
     src: url('/assets/font/MOAM91.ttf');
 }
 
@@ -82,6 +82,9 @@ textarea {
     padding: 0;
     box-sizing: border-box;
     outline: none;
+}
+td,th{
+    background: none;
 }
 
 #app {
@@ -186,6 +189,8 @@ textarea {
     --el-vehicle-danger: #ED4235;
     --el-vehicle-warning: #FCCA43;
     --el-report-primary: #27406A;
+    --el-report-primary-light: #2a426c;
+    --el-report-block-icon: #fee192;
     --el-report-main: #335CA1;
     --el-report-light: #e2e4e9;
 }
@@ -387,6 +392,7 @@ svg {
     border-bottom-color: var(--report-bottom-border);
     box-sizing: border-box;
     font-size: 12px;
+    background: inherit;
 }
 
 .report-table thead {
@@ -395,14 +401,18 @@ svg {
 }
 
 
-.report-table thead.report-title {
+.report-table tr{
+    background: inherit;
+}
+
+.report-table .report-title {
     overflow: hidden;
     position: relative;
     box-sizing: border-box;
     font-size: 18px;
 }
 
-.report-table thead.report-title th {
+.report-table .report-title th {
     font-weight: 200;
     padding: 0;
     border-width: 0;
@@ -427,15 +437,15 @@ svg {
     justify-content: center;
 }
 
-.report-table thead.report-title th div.left {
+.report-table .report-title th div.left {
     justify-content: flex-start;
 }
 
-.report-table thead.report-title th div.right {
+.report-table .report-title th div.right {
     justify-content: flex-end;
 }
 
-.report-table thead.report-title img {
+.report-table .report-title img {
     margin: 0;
     padding: 0;
 }
@@ -484,15 +494,30 @@ svg {
     height: 100px;
 }
 
-.report-page td {
-    height: 50px;
-    width: var(--report-width);
-    background-color: var(--el-report-light);
-    color: var(--el-report-primary);
-    font-size: 14px;
+.report-status-point{
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-right: 10px;
+    background-color: var(--el-color-success);
+}
+.report-status-point.border{
+    border: var(--el-color-black) 1px solid;
+}
+.report-status-point.preHighlight{
+    background-color: var(--el-color-warning);
+}
+.report-status-point.highlight{
+    background-color: var(--el-color-danger);
+}
+.report-status-text{
+    color: var(--el-color-success);
+}
+.report-status-text.preHighlight{
+    color: var(--el-color-warning);
+}
+.report-status-text.highlight{
+    color: var(--el-color-danger);
 }
 
-
-.report-page span+span {
-    margin-left: 10px;
-}

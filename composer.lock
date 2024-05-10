@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5ecd70f2f26cb0063aa6880a87aea359",
+    "content-hash": "ea69bf522108e84063b2ea0003bdfc66",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -4162,16 +4162,16 @@
         },
         {
             "name": "phpoffice/phppresentation",
-            "version": "1.0.0",
+            "version": "dev-develop",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/PHPPresentation.git",
-                "reference": "732d029640b78b5010750949629f635ed984ee10"
+                "reference": "6738a06b8995db7667dc0a8d541e8bcca83b319d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPOffice/PHPPresentation/zipball/732d029640b78b5010750949629f635ed984ee10",
-                "reference": "732d029640b78b5010750949629f635ed984ee10",
+                "url": "https://api.github.com/repos/PHPOffice/PHPPresentation/zipball/6738a06b8995db7667dc0a8d541e8bcca83b319d",
+                "reference": "6738a06b8995db7667dc0a8d541e8bcca83b319d",
                 "shasum": ""
             },
             "require": {
@@ -4183,12 +4183,13 @@
             },
             "require-dev": {
                 "phpmd/phpmd": "2.*",
-                "phpstan/phpstan": "^0.12.88",
+                "phpstan/phpstan": "^0.12.88 || ^1.0.0",
                 "phpunit/phpunit": ">=7.0"
             },
             "suggest": {
                 "ext-gd": "Required to add images"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -4225,9 +4226,9 @@
             ],
             "support": {
                 "issues": "https://github.com/PHPOffice/PHPPresentation/issues",
-                "source": "https://github.com/PHPOffice/PHPPresentation/tree/1.0.0"
+                "source": "https://github.com/PHPOffice/PHPPresentation/tree/develop"
             },
-            "time": "2021-11-25T08:43:20+00:00"
+            "time": "2024-01-31T14:57:16+00:00"
         },
         {
             "name": "phpoffice/phpspreadsheet",
@@ -10971,7 +10972,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "phpoffice/phppresentation": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

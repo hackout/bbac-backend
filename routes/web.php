@@ -12,6 +12,7 @@ use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\Backend\PartController;
 use App\Http\Controllers\Backend\IssueController;
+use App\Http\Controllers\Backend\ReportController;
 use App\Http\Controllers\Backend\CustomController;
 use App\Http\Controllers\Backend\NoticeController;
 use App\Http\Controllers\Backend\TorqueController;
@@ -458,6 +459,20 @@ Route::middleware("auth")->group(function () {
 
         //导出报表
         Route::group(['prefix' => '/report'], function () {
+            Route::get('/vehicle', [ReportController::class, 'vehicle'])->name('report.vehicle');
+            Route::get('/product', [ReportController::class, 'product'])->name('report.product');
+            Route::get('/inline', [ReportController::class, 'inline'])->name('report.inline');
+            Route::get('/vehicle/daily', [ReportController::class, 'vehicleDaily'])->name('report.vehicle_daily');
+            Route::get('/product/daily', [ReportController::class, 'productDaily'])->name('report.product_daily');
+            Route::get('/inline/daily', [ReportController::class, 'inlineDaily'])->name('report.inline_daily');
+            Route::get('/vehicle/weekly', [ReportController::class, 'vehicleWeekly'])->name('report.vehicle_weekly');
+            Route::get('/product/weekly', [ReportController::class, 'productWeekly'])->name('report.product_weekly');
+            Route::get('/inline/weekly', [ReportController::class, 'inlineWeekly'])->name('report.inline_weekly');
+            Route::get('/vehicle/monthly', [ReportController::class, 'vehicleMonthly'])->name('report.vehicle_monthly');
+            Route::get('/product/monthly', [ReportController::class, 'productMonthly'])->name('report.product_monthly');
+            Route::get('/inline/monthly', [ReportController::class, 'inlineMonthly'])->name('report.inline_monthly');
+            Route::get('/product/yearly', [ReportController::class, 'productYearly'])->name('report.product_yearly');
+            Route::get('/inline/yearly', [ReportController::class, 'inlineYearly'])->name('report.inline_yearly');
             Route::post('/custom', [CustomController::class, 'export'])->name('custom.export');
         });
     });

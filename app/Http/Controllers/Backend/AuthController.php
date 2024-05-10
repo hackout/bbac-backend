@@ -130,7 +130,7 @@ class AuthController extends Controller
      * @param  DepartmentService $departmentService
      * @return InertiaResponse
      */
-    public function first(DictService $dictService, DepartmentService $departmentService): InertiaResponse
+    public function first(Request $request, DictService $dictService, DepartmentService $departmentService): InertiaResponse
     {
         return Inertia::render('Login/First', [
             'options' => [
@@ -140,7 +140,7 @@ class AuthController extends Controller
                 'gender' => $dictService->getOptionByCode('gender'),
                 'engine_type' => $dictService->getOptionByCode('engine_type')
             ],
-            'departments' => $departmentService->getFullOptions()
+            'departments' => $departmentService->getFullOptions($request->user())
         ]);
     }
 

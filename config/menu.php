@@ -288,15 +288,10 @@ return [
     [
         'name' => '数据报表',
         'intro' => 'Data Report',
-        'path' => 'report',
+        'path' => 'report.inline',
         'icon' => 'el-icon-data-line',
         'show' => true,
         'children' => [
-            [
-                'name' => '产品列表',
-                'path' => 'report',
-                'show' => true,
-            ],
             [
                 'name' => '在线考核',
                 'path' => 'report.inline',
@@ -309,7 +304,7 @@ return [
             ],
             [
                 'name' => '整车服务',
-                'path' => 'report.service',
+                'path' => 'report.vehicle',
                 'show' => true,
             ]
         ]

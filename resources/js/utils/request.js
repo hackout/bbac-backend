@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ElNotification } from 'element-plus';
 
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.timeout = 5000;
+axios.defaults.timeout = 50000;
 
 const HTTP_STATUS_NOT_FOUND = 404;
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;

@@ -1,8 +1,15 @@
 <?php
 namespace App\Services\Backend;
 
+use Str;
 use App\Models\Task;
 use App\Models\TaskItem;
+use App\Models\User;
+use Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Packages\Department\DepartmentRole;
 use App\Services\Service;
 use App\Models\ExamineInlineItem;
 use App\Models\ExamineProductItem;
@@ -25,7 +32,7 @@ class TaskService extends Service
         return [
             Task::TYPE_INLINE => 'inline_order_rules',
             Task::TYPE_PRODUCT => 'product_order_rules',
-            Task::TYPE_SERVICE => 'service_order_rules',
+            Task::TYPE_VEHICLE => 'service_order_rules',
         ];
     }
     public function getServiceType()
@@ -33,7 +40,7 @@ class TaskService extends Service
         return [
             Task::TYPE_INLINE => new ExamineInlineService,
             Task::TYPE_PRODUCT => new ExamineProductService,
-            Task::TYPE_SERVICE => new ExamineVehicleService,
+            Task::TYPE_VEHICLE => new ExamineVehicleService,
         ];
     }
 
@@ -108,9 +115,8 @@ class TaskService extends Service
     public function createByNumber(array $data)
     {
         $examine = ($this->getServiceType()[$data['type']])->findById($data['examine_id']);
-        if(!$examine)
-        {
-            throw ValidationException::withMessages(['id.exists'=>'考核模板不存在']);
+        if (!$examine) {
+            throw ValidationException::withMessages(['id.exists' => '考核模板不存在']);
         }
         $sql = [
             'assembly_id' => $data['assembly_id'],
@@ -170,4 +176,176 @@ class TaskService extends Service
         }
     }
 
+    /**
+     * 获取整车服务考核订单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User  $user
+     * @param  array $data
+     * @return array
+     */
+    public function getVehicleList(User $user, array $data): array
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $condition = [
+            'keyword' => ['search', ['name', 'id', 'number']],
+            'engine' => 'eq',
+            'status' => 'eq'
+        ];
+        parent::listQuery($data, $condition, [['type', '=', Task::TYPE_VEHICLE]]);
+        $result = parent::list();
+        $result['items'] = $result['items']->map(function (Task $item) {
+            return [
+                'id' => $item->id,
+                'engine' => $item->engine,
+                'user_id' => $item->user_id,
+                'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
+                'assembly_id' => $item->assembly_id,
+                'assembly' => optional($item->assembly)->number,
+                'eb_number' => $item->eb_number,
+                'finding' => optional($item->extra)['defect_category'],
+                'remark' => $item->remark,
+                'created_at' => $item->created_at,
+                'status' => $item->status
+            ];
+        });
+        return $result;
+    }
+
+    /**
+     * 删除整车服务考核订单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return void
+     */
+    public function deleteVehicle(User $user, string $id)
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        parent::delete($id);
+    }
+
+    /**
+     * 获取整车考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return array
+     */
+    public function getVehicleDetail(User $user, string $id): array
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($id);
+        return [
+            'id' => $item->id,
+            'engine' => $item->engine,
+            'user_id' => $item->user_id,
+            'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
+            'assembly_id' => $item->assembly_id,
+            'assembly' => optional($item->assembly)->number,
+            'eb_number' => $item->eb_number,
+            'finding' => optional($item->extra)['defect_category'],
+            'level' => optional($item->extra)['defect_level'],
+            'eight' => optional($item->extra)['eight'],
+            'resp' => optional($item->extra)['resp'],
+            'description' => optional($item->extra)['description'],
+            'next' => optional($item->extra)['next'],
+            'purpose' => optional($item->extra)['purpose'],
+            'plant' => $item->plant,
+            'line' => $item->line,
+            'remark' => $item->remark,
+            'created_at' => $item->created_at,
+            'status' => $item->status,
+            'thumbnails' => $item->thumbnails,
+
+        ];
+    }
+
+    public function updateVehicle(User $user, string $id, array $data)
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($id);
+        $sql = [
+            'line' => $data['line'],
+            'engine' => $data['engine'],
+        ];
+
+        if (array_key_exists('eb_number', $data)) {
+            $sql['eb_number'] = $data['eb_number'];
+        }
+        $hasExtra = false;
+        $extra = $item->extra ?? [];
+        if (array_key_exists('purpose', $data)) {
+            $extra['purpose'] = $data['purpose'];
+            $hasExtra = true;
+        }
+        if (array_key_exists('eight', $data)) {
+            $extra['eight'] = $data['eight'];
+            $hasExtra = true;
+        }
+        if (array_key_exists('level', $data)) {
+            $extra['defect_level'] = $data['level'];
+            $hasExtra = true;
+        }
+        if (array_key_exists('description', $data)) {
+            $extra['description'] = $data['description'];
+            $hasExtra = true;
+        }
+        if (array_key_exists('resp', $data)) {
+            $extra['resp'] = $data['resp'];
+            $hasExtra = true;
+        }
+        if (array_key_exists('next', $data)) {
+            $extra['next'] = $data['next'];
+            $hasExtra = true;
+        }
+        if ($hasExtra) {
+            $sql['extra'] = $extra;
+        }
+        if (parent::update($id, $sql)) {
+            $thumbnails = array_key_exists('thumbnails', $data) ? (array) $data['thumbnails'] : [];
+            $media = array_key_exists('media', $data) ? (array) $data['media'] : [];
+            if ($media) {
+                Media::whereIn('uuid', $media)->get()->each(fn($n) => $n->delete());
+            }
+            if ($thumbnails) {
+                foreach ($thumbnails as $file) {
+                    if (!Str::isUuid($file['uuid'])) {
+                        if ($this->item->addMedia(Storage::path('public/images/' . $file['uuid']))->toMediaCollection(Task::MEDIA_FILE)) {
+                            Storage::delete('public/images/' . $file['uuid']);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 上传图片到考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  UploadedFile $fileBag
+     * @return array
+     */
+    public function upload(UploadedFile $fileBag): array
+    {
+        $result = [];
+        $file = Storage::putFile('public/images', $fileBag);
+        $result = [
+            'url' => Storage::url($file),
+            'name' => $fileBag->getClientOriginalName(),
+            'uuid' => Str::afterLast($file, '/')
+        ];
+        return $result;
+    }
 }

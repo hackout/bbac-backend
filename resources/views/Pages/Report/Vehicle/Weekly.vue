@@ -4,7 +4,7 @@
             <div class="page-search">
                 <div class="page-search-buttons">
                     <el-button @click="goList">返回</el-button>
-                    <el-date-picker style="margin-left:10px;" format="[第] ww [周]" v-model="weekly" type="week"
+                    <el-date-picker style="margin-left:10px;" format="YYYY[年的第]ww[周]" v-model="weekly" type="week"
                         @change="changeDate" placeholder="选择日期">
                     </el-date-picker>
                 </div>

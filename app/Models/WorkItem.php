@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Traits\PrimaryKeyUuidTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -106,5 +107,20 @@ class WorkItem extends Model
     public function work()
     {
         return $this->belongsTo(Work::class);
+    }
+
+    /**
+     * 结束任务
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param bool $status
+     * @return void
+     */
+    public function setFinish(bool $status)
+    {
+        $this->fill([
+            'status' => $status
+        ]);
+        $this->save();
     }
 }

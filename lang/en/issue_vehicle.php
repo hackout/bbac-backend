@@ -4,6 +4,9 @@ return [
     'id_exists' => 'The issue does not exist.',
     'missing_permission' => 'No operation permissions.',
     'create' => [
+        'task_id' => [
+            'exists_or_null' => 'The task is incorrect.'
+        ],
         'shift' => [
             'required' => 'Shift cannot be empty.',
             'integer' => 'Shift is incorrect.'

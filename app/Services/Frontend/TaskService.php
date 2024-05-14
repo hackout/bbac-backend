@@ -5,6 +5,7 @@ use App\Models\Account;
 use App\Models\ExamineInline;
 use App\Models\ExamineProduct;
 use App\Models\ExamineVehicle;
+use App\Models\WorkItem;
 use App\Models\TaskItem;
 use App\Models\Task;
 use App\Models\TrainingUser;
@@ -37,11 +38,11 @@ class TaskService extends Service
     public function getVehicleList(User $user): array
     {
         if (!DepartmentRole::checkVehicle($user)) {
-            return ['total'=>0,'items' => []];
+            return ['total' => 0, 'items' => []];
         }
         parent::setQuery([
             ['user_id', '=', $user->id],
-            ['type', '=', Task::TYPE_SERVICE]
+            ['type', '=', Task::TYPE_VEHICLE]
         ]);
         $result = parent::list();
         $now = Carbon::now();
@@ -96,6 +97,24 @@ class TaskService extends Service
                 'thumbnails' => $thumbnails
             ];
         });
+        $workItem = WorkItem::where(['user_id' => $user->id, 'task_id' => $id])->first();
+        if (!$workItem) {
+            throw ValidationException::withMessages(['permission' => __('issue_vehicle.missing_permission')]);
+        }
+        if ($workItem->status == WorkItem::STATUS_PENDING) {
+            $now = Carbon::now();
+            $task->fill([
+                'task_status' => WorkItem::STATUS_PROCESSING,
+                'start_at' => $now,
+                'valid_at' => $now->clone()->addHours($task->period)
+            ]);
+            $workItem->fill([
+                'status' => WorkItem::STATUS_PROCESSING,
+                'work_date' => Carbon::now()
+            ]);
+            $workItem->save();
+            $this->clearCache();
+        }
         $result = [
             'id' => $task->id,
             'number' => $task->number,
@@ -103,7 +122,8 @@ class TaskService extends Service
             'plant' => $task->plant,
             'line' => $task->line,
             'engine' => $task->engine,
-            'status' => $task->status,
+            'status' => $workItem->status,
+            'start_date' => $workItem->work_date,
             'assembly' => optional($task->assembly)->number,
             'progress' => $process,
             'items' => $items
@@ -113,6 +133,54 @@ class TaskService extends Service
     }
 
 
+    /**
+     * 提交整车服务-动态考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @param  array  $data
+     * @return void
+     */
+    public function vehicleUpdate(User $user, string $id, array $data)
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => __('issue_vehicle.missing_permission')]);
+        }
+        $task = parent::find([
+            'type' => Task::TYPE_VEHICLE,
+            'id' => $id
+        ]);
+        $now = Carbon::now();
+        $timeStatus = $now->diffInMinutes($task->valid_at, true) > 0 ? WorkItem::STATUS_ADVANCE : WorkItem::STATUS_ENDED;
+        $sql = [
+            'remark' => array_key_exists('remark', $data) ? $data['remark'] : $task->remark,
+            'end_at' => $now,
+            'task_status' => $timeStatus
+        ];
+        $status = (bool) $data['status'];
+        $task->fill($sql);
+        if ($task->save()) {
+            if (array_key_exists('image', $data) && $data['image'] instanceof UploadedFile) {
+                $task->addMedia($data['image'])->toMediaCollection(Task::MEDIA_FILE);
+            }
+            foreach ($data['number'] as $rs) {
+                if ($item = $task->items->where('id', $rs['id'])->first()) {
+                    $item->fill([
+                        'content' => json_encode([
+                            'number' => $rs['number'],
+                            'status' => $status
+                        ])
+                    ]);
+                    $item->save();
+                }
+            }
+            $workList = WorkItem::where(['user_id' => $user->id, 'task_id' => $task->id])->get();
+            $workList->each(fn(WorkItem $workItem) => $workItem->setFinish($timeStatus));
+        }
+
+
+    }
 
     /**
      * 在线考核-常规考核列表
@@ -206,21 +274,20 @@ class TaskService extends Service
     public function getListByInlineDynamic(User $user): array
     {
         if (!DepartmentRole::checkInline($user)) {
-            return ['total'=>0,'items' => []];
+            return ['total' => 0, 'items' => []];
         }
         $sql = [
             ['user_id', '=', $user->id],
             ['type', '=', Task::TYPE_INLINE]
         ];
-        $examineIdList = ExamineInline::where('type',ExamineInline::TYPE_DYNAMIC)->select('id')->get()->pluck('id')->toArray();
-        
+        $examineIdList = ExamineInline::where('type', ExamineInline::TYPE_DYNAMIC)->select('id')->get()->pluck('id')->toArray();
+
         $sql[] = [
-            function($query) use($examineIdList){
-                if($examineIdList)
-                {
-                    $query->whereIn('examine_id',$examineIdList);
-                }else{
-                    $query->whereIn('examine_id',['-1']);
+            function ($query) use ($examineIdList) {
+                if ($examineIdList) {
+                    $query->whereIn('examine_id', $examineIdList);
+                } else {
+                    $query->whereIn('examine_id', ['-1']);
                 }
             }
         ];

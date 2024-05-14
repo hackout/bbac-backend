@@ -36,15 +36,30 @@ return [
     'vehicle' => [
         'update' => [
             'id' => [
-                'exists_plus' => '参数错误'
+                'exists' => 'The parameter is incorrect.'
             ],
-            'item_id' => [
-                'required' => '参数错误',
-                'exists_plus' => '参数错误'
+            'remark' => [
+                'max' => 'The remark must be less than 250 characters.'
             ],
-            'content' => [
-                'required' => '参数错误',
-                'in' => '参数错误'
+            'status' => [
+                'required' => 'The status cannot be empty.',
+                'in' => 'The status is incorrect.'
+            ],
+            'image' => [
+                'required' => 'The image cannot be empty.',
+                'image' => 'The image is incorrect.'
+            ],
+            'number' => [
+                'required' => 'The number cannot be empty.',
+                'array' => 'The number is incorrect.'
+            ],
+            'number_id' => [
+                'required' => 'The number is incorrect.',
+                'exists' => 'The number is incorrect.'
+            ],
+            'number_number' => [
+                'required' => 'The number is incorrect.',
+                'between' => 'The number is incorrect.'
             ],
         ]
     ],

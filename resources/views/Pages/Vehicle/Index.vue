@@ -157,6 +157,7 @@ export default {
   border-radius: 8px;
   overflow: hidden;
   display: inline-block;
+  background-color: var(--el-color-primary);
 }
 
 .status-tag.success {

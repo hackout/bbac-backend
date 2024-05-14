@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Spatie\MediaLibrary\HasMedia;
 use App\Traits\PrimaryKeyUuidTrait;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -16,14 +19,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @author Dennis Lui <hackout@vip.qq.com>
  * @property string $id 主键
  * @property string $name 任务名称
- * @property ?string $user_id 用户
+ * @property ?string $user_id 用户ID
+ * @property ?string $issue_id 问题追踪ID
  * @property ?string $examine_id 考核ID
  * @property ?string $task_cron_id 任务生产ID
+ * @property ?array $extra 扩展信息
  * @property int $type 考核类型
  * @property int $plant 工厂
  * @property int $line 产线
  * @property int $engine 机型
  * @property int $status 项目阶段
+ * @property ?string $eb_number 发动机号
+ * @property ?string $remark 备注信息
  * @property ?string $assembly_id 总成
  * @property int $task_status 任务状态
  * @property string $number 任务单号
@@ -39,12 +46,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read null|ExamineInline|ExamineProduct|ExamineVehicle $examine 考核模板
  * @property-read ?User $user 考核项数量
  * @property-read ?TaskCron $task_cron 考核项数量
+ * @property-read ?Collection<Media> $media 附件
  * @property-read ?Collection<WorkItem> $work_items 任务记录
  * @property-read ?Collection<TaskItem> $items 考核项数量
  */
-class Task extends Model
+class Task extends Model implements HasMedia
 {
-    use HasFactory, PrimaryKeyUuidTrait;
+    use HasFactory, PrimaryKeyUuidTrait, InteractsWithMedia;
 
     /**
      * 附件Key 同考核项附件Key
@@ -64,7 +72,7 @@ class Task extends Model
     /**
      * 整车服务
      */
-    const TYPE_SERVICE = 3;
+    const TYPE_VEHICLE = 3;
 
     /**
      * 未分配
@@ -92,11 +100,14 @@ class Task extends Model
         'user_id',
         'examine_id',
         'task_cron_id',
+        'extra',
+        'remark',
         'type',
         'plant',
         'line',
         'engine',
         'status',
+        'eb_number',
         'assembly_id',
         'task_status',
         'number',
@@ -108,6 +119,9 @@ class Task extends Model
     ];
 
     public $casts = [
+        'defect_level' => 'integer',
+        'defect_category' => 'integer',
+        'extra' => 'array',
         'type' => 'integer',
         'plant' => 'integer',
         'line' => 'integer',
@@ -125,9 +139,9 @@ class Task extends Model
     ];
 
 
-    public $append = ['items_count'];
+    public $append = ['items_count','thumbnails'];
 
-    public $hidden = ['items'];
+    public $hidden = ['items','media'];
 
     /**
      * 总成号
@@ -204,5 +218,19 @@ class Task extends Model
     public function getItemsCountAttribute()
     {
         return $this->items->count();
+    }
+
+    
+    public function getThumbnailsAttribute()
+    {
+        if (!$medias = $this->getMedia(self::MEDIA_FILE))
+            return [];
+        return $medias->map(function ($item) {
+            return [
+                'name' => $item->file_name,
+                'url' => url($item->getUrl()),
+                'uuid' => $item->uuid
+            ];
+        });
     }
 }

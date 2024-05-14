@@ -2986,6 +2986,28 @@ class DictSeeder extends Seeder
                         'content' => 4,
                     ]
                 ]
+            ],
+            [
+                'name' => '应用意图',
+                'code' => 'purpose',
+                'options' => [
+                    [
+                        'name' => 'SOP',
+                        'content' => 1,
+                    ],
+                    [
+                        'name' => 'Project',
+                        'content' => 2,
+                    ],
+                    [
+                        'name' => 'Tryout',
+                        'content' => 3,
+                    ],
+                    [
+                        'name' => 'Analysis',
+                        'content' => 4,
+                    ]
+                ]
             ]
         ];
     }

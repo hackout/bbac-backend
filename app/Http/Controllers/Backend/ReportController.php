@@ -121,7 +121,7 @@ class ReportController extends Controller
      */
     public function vehicleWeekly(Request $request, DictService $dictService): InertiaResponse
     {
-        $date = (int) $request->get('date', 0);
+        $date = $request->get('date') ?? date('Y-m-d',strtotime('last monday'));
         return Inertia::render('Report/Vehicle/Weekly', [
             'date' => $date,
             'items' => fn() => (new ReportService)->getVehicleWeekly($date),
@@ -171,9 +171,10 @@ class ReportController extends Controller
      */
     public function vehicleMonthly(Request $request, DictService $dictService): InertiaResponse
     {
-        $date = $request->get('date', date('Y-m'));
+        $date = $request->get('date') ?? date('Y-m');
         return Inertia::render('Report/Vehicle/Monthly', [
-            'items' => fn() => (new ReportService)->getVehicleWeekly($date),
+            'date' => $date,
+            'items' => fn() => (new ReportService)->getVehicleMonthly($date),
             'eb_type' => $dictService->getOptionByCode('eb_type'),
             'root_cause_type' => $dictService->getOptionByCode('root_cause_type'),
             'issue_type' => $dictService->getOptionByCode('issue_type'),

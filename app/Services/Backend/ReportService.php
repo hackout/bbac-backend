@@ -232,13 +232,9 @@ class ReportService
         return $result;
     }
 
-    public function getVehicleWeekly(int $date = 0)
+    public function getVehicleWeekly(string $date)
     {
-        if (!$date) {
-            $startDay = Carbon::now()->startOfWeek();
-        } else {
-            $startDay = Carbon::now()->startOfYear()->addWeeks($date - 1);
-        }
+        $startDay = Carbon::parse($date);
         $endDay = $startDay->clone()->endOfWeek();
         $ebTypeList = (new DictService)->getOptionByCode('eb_type');
         $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');

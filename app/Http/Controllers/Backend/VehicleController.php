@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend;
 
+use App\Services\Backend\TaskService;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -159,7 +160,6 @@ class VehicleController extends Controller
         $result = $issueVehicleService->getList($request->user(), $data);
         return $this->success($result);
     }
-
 
     /**
      * 上传图片到整车服务问题追踪
@@ -382,17 +382,223 @@ class VehicleController extends Controller
     public function task(Request $request, DictService $dictService): InertiaResponse
     {
         return Inertia::render('Vehicle/Task', [
-            'motorcycle_type' => $dictService->getOptionByCode('motorcycle_type'),
-            'car_series' => $dictService->getOptionByCode('car_series'),
-            'sensor_point' => $dictService->getOptionByCode('sensor_point'),
-            'service_shift' => $dictService->getOptionByCode('service_shift'),
-            'eb_type' => $dictService->getOptionByCode('eb_type'),
-            'service_factory' => $dictService->getOptionByCode('service_factory'),
-            'block_status' => $dictService->getOptionByCode('block_status'),
-            'block_content' => $dictService->getOptionByCode('block_content'),
-            'issue_status' => $dictService->getOptionByCode('issue_status'),
-            'issue_type' => $dictService->getOptionByCode('issue_type'),
-            'detect_area' => $dictService->getOptionByCode('detect_area'),
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'task_status' => $dictService->getOptionByCode('task_status'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
         ]);
+    }
+
+    /**
+     * 获取整车服务动态考核列表
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request      $request
+     * @param  TaskService  $taskService
+     * @return JsonResponse
+     */
+    public function taskList(Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'keyword' => 'sometimes|nullable',
+            'engine' => 'sometimes|nullable|integer',
+            'status' => 'sometimes|nullable|integer'
+        ];
+        $messages = [
+            'engine.integer' => '机型参数错误',
+            'status.integer' => '状态参数错误'
+        ];
+        $data = $request->validate($rules, $messages);
+        $result = $taskService->getVehicleList($request->user(), $data);
+        return $this->success($result);
+    }
+
+    /**
+     * 整车服务-动态考核详情
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string          $id
+     * @param  Request         $request
+     * @param  DictService     $dictService
+     * @param  TaskService     $taskService
+     * @return InertiaResponse
+     */
+    public function taskDetail(string $id, Request $request, DictService $dictService, TaskService $taskService): InertiaResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,type,3',
+        ];
+        $messages = [
+            'id.exists' => '考核记录不存在或已删除',
+        ];
+
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return abort(500)->withMessages($validator->errors());
+        }
+        $item = $taskService->getVehicleDetail($request->user(), $id);
+        return Inertia::render('Vehicle/TaskDetail', [
+            'item' => $item,
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'task_status' => $dictService->getOptionByCode('task_status'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'purpose' => $dictService->getOptionByCode('purpose'),
+            'assembly_line' => $dictService->getOptionByCode('assembly_line'),
+        ]);
+    }
+
+    public function taskEdit(string $id, Request $request, DictService $dictService, TaskService $taskService): InertiaResponse|JsonResponse
+    {
+        if ($request->ajax() && $request->method() == 'PUT') {
+            $rules = [
+                'id' => 'exists:tasks,id,type,3',
+                'line' => 'required|integer',
+                'engine' => 'required|integer',
+                'purpose' => 'required|integer',
+                'eight' => 'sometimes|nullable',
+                'level' => 'sometimes|nullable|integer',
+                'eb_number' => 'sometimes|nullable',
+                'description' => 'sometimes|nullable|max:500',
+                'resp' => 'sometimes|nullable|max:500',
+                'next' => 'sometimes|nullable|max:750',
+                'thumbnails' => 'sometimes|nullable|array',
+                'thumbnails.*.name' => 'required',
+                'thumbnails.*.url' => 'required',
+                'thumbnails.*.uuid' => 'required',
+                'media' => 'sometimes|nullable|array|max:5',
+            ];
+            $messages = [
+                'id.exists' => '考核记录不存在或已删除',
+                'line.required' => '生产线不能为空',
+                'engine.required' => '机型不能为空',
+                'purpose.required' => 'Purpose不能为空',
+                'line.integer' => '生产线不正确',
+                'engine.integer' => '机型不正确',
+                'purpose.integer' => 'Purpose不正确',
+                'level.integer' => '问题等级不正确',
+                'description.max' => '问题描述最大支持500个字符',
+                'resp.max' => '责任部门/人最大支持500个字符',
+                'next.max' => 'Next Step最大支持750个字符',
+                'thumbnails.array' => '关联图片不正确',
+                'thumbnails.*.name.required' => '关联图片不正确',
+                'thumbnails.*.url.required' => '关联图片不正确',
+                'thumbnails.*.uuid.required' => '关联图片不正确',
+                'media.array' => '附件参数不正确',
+                'media.*.required' => '附件参数不正确',
+            ];
+
+            $validator = Validator::make(array_merge([
+                'id' => $id
+            ], $request->all()), $rules, $messages);
+            if ($validator->fails()) {
+                return $this->error($validator->errors()->first());
+            }
+            $data = $validator->safe()->only([
+                'line',
+                'engine',
+                'purpose',
+                'level',
+                'description',
+                'resp',
+                'eight',
+                'eb_number',
+                'next',
+                'thumbnails',
+                'media'
+            ]);
+            $taskService->updateVehicle($request->user(),$id,$data);
+            return $this->success();
+        }
+        $rules = [
+            'id' => 'exists:tasks,id,type,3',
+        ];
+        $messages = [
+            'id.exists' => '考核记录不存在或已删除',
+        ];
+
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return abort(500)->withMessages($validator->errors());
+        }
+        $item = $taskService->getVehicleDetail($request->user(), $id);
+        return Inertia::render('Vehicle/TaskEdit', [
+            'item' => $item,
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'task_status' => $dictService->getOptionByCode('task_status'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'purpose' => $dictService->getOptionByCode('purpose'),
+            'assembly_line' => $dictService->getOptionByCode('assembly_line'),
+        ]);
+    }
+
+    /**
+     * 上传图片到整车服务动态考核
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string              $id
+     * @param  Request             $request
+     * @param  TaskService $taskService
+     * @return JsonResponse
+     */
+    public function taskUpload(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,type,3',
+            'file' => 'required|image'
+        ];
+        $messages = [
+            'id.exists' => '当前模板无法编辑',
+            'file.required' => '文件不能为空',
+            'file.image' => '文件不合规'
+        ];
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+        $data = $validator->safe()->only([
+            'file'
+        ]);
+        $result = $taskService->upload($data['file']);
+        return response()->json([
+            'errno' => 0,
+            'data' => $result
+        ]);
+    }
+
+    /**
+     * 删除整车服务-动态考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string       $id
+     * @param  Request      $request
+     * @param  TaskService  $taskService
+     * @return JsonResponse
+     */
+    public function taskDelete(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,type,3',
+        ];
+        $messages = [
+            'id.exists' => '考核记录不存在或已删除',
+        ];
+
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+
+        $taskService->deleteVehicle($request->user(), $id);
+        return $this->success();
     }
 }

@@ -25,7 +25,7 @@ class TaskService extends Service
         return [
             Task::TYPE_INLINE => 'inline_order_rules',
             Task::TYPE_PRODUCT => 'product_order_rules',
-            Task::TYPE_SERVICE => 'service_order_rules',
+            Task::TYPE_VEHICLE => 'service_order_rules',
         ];
     }
 

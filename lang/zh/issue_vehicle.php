@@ -4,6 +4,9 @@ return [
     'id_exists' => '问题不存在或已删除',
     'missing_permission' => '暂无操作权限',
     'create' => [
+        'task_id' => [
+            'exists_or_null' => '考核单无效'
+        ],
         'shift' => [
             'required' => '班次不能为空',
             'integer' => '班次不正确'

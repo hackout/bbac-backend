@@ -339,7 +339,7 @@ class IssueVehicle extends Model implements HasMedia
         $now = Carbon::now();
         if (!$this->due_date)
             return 9999;
-        if (!$this->delivery_confirm || !$this->delivery_at)
+        if (!$this->is_confirm || !$this->delivery_at)
             return $this->due_date->diffInDays($now, true);
         return $this->due_date->diffInDays($this->delivery_at, true);
     }

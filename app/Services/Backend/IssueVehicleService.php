@@ -22,6 +22,9 @@ class IssueVehicleService extends Service
 {
     public ?string $className = IssueVehicle::class;
 
+    /**
+     * 获取问题列表
+     */
     public function getList(User $user, array $data): array
     {
         if (!DepartmentRole::checkVehicle($user)) {

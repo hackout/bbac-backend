@@ -56,7 +56,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::group(['prefix' => '/task'], function () {
         Route::group(['prefix' => '/vehicle'], function () {
             Route::get('/', [TaskController::class, 'vehicle']);
-            Route::get('/{id}', [TaskController::class, 'vehicleDetail']);
+            Route::get('/{id}', [TaskController::class, 'vehicleDetail'])->where('id', API_UUID_REGEX);
+            Route::post('/{id}', [TaskController::class, 'vehicleUpdate'])->where('id', API_UUID_REGEX);
         });
     });
 

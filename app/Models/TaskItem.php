@@ -7,6 +7,7 @@ use Spatie\MediaLibrary\HasMedia;
 use App\Traits\PrimaryKeyUuidTrait;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,7 +29,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read ?Task $task 考核单
  * @property-read ?ExamineInlineItem|ExamineProductItem|ExamineVehicleItem $examine_item 考核项
  * @property-read ?User $user 用户
- * @property-read ?Media $media 附件
+ * @property-read ?Collection<Media> $media 附件
  * 
  */
 class TaskItem extends Model implements HasMedia

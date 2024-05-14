@@ -6,7 +6,8 @@
                 <span>｜</span>
                 <span>User LOGIn</span>
             </div>
-            <el-form ref="loginForm" :model="form" :rules="rules" label-width="0" size="large" @submit.native.prevent="login">
+            <el-form ref="loginForm" :model="form" :rules="rules" label-width="0" size="large"
+                @submit.native.prevent="login">
                 <el-form-item prop="username">
                     <el-input v-model="form.username" prefix-icon="bbac-icon-user-fill" placeholder="请输入用户名">
                     </el-input>
@@ -67,9 +68,8 @@ export default {
         }
     },
     watch: {
-        showCaptcha(val){
-            if(val)
-            {
+        showCaptcha(val) {
+            if (val) {
                 this.rules.code = [
                     { required: true, message: '验证码不能为空', trigger: 'blur' }
                 ]
@@ -82,7 +82,7 @@ export default {
         })
     },
     methods: {
-        refreshCaptcha(){
+        refreshCaptcha() {
             this.captchaUrl = this.$route('captcha') + '?_t=' + (new Date()).getTime()
         },
         async login() {
@@ -92,10 +92,7 @@ export default {
                 onError: page => {
                     this.$tool.error(page)
                     if (page.captcha) {
-                        if(this.showCaptcha)
-                        {
-                            this.refreshCaptcha()
-                        }
+                        this.refreshCaptcha()
                         this.showCaptcha = true
                     }
                 }

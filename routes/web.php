@@ -449,6 +449,12 @@ Route::middleware("auth")->group(function () {
             Route::get('/', [VehicleController::class, 'index'])->name('vehicle.index');
             Route::get('/finish', [VehicleController::class, 'finish'])->name('vehicle.finish');
             Route::get('/task', [VehicleController::class, 'task'])->name('vehicle.task');
+            Route::get('/task/list', [VehicleController::class, 'taskList'])->name('vehicle.task_list');
+            Route::get('/task/{id}', [VehicleController::class, 'taskDetail'])->name('vehicle.task_detail')->where('id', UUID_REGEX);
+            Route::get('/task/{id}/edit', [VehicleController::class, 'taskEdit'])->name('vehicle.task_edit')->where('id', UUID_REGEX);
+            Route::post('/task/{id}/upload', [VehicleController::class, 'taskUpload'])->name('vehicle.task_upload')->where('id', UUID_REGEX);
+            Route::put('/task/{id}/edit', [VehicleController::class, 'taskEdit'])->where('id', UUID_REGEX);
+            Route::delete('/task/{id}/delete', [VehicleController::class, 'taskDelete'])->name('vehicle.task_delete')->where('id', UUID_REGEX);
             Route::get('/list', [VehicleController::class, 'list'])->name('vehicle.list');
             Route::post('/upload/{id}', [VehicleController::class, 'upload'])->name('vehicle.upload')->where('id', UUID_REGEX);
             Route::get('/{id}', [VehicleController::class, 'detail'])->name('vehicle.detail')->where('id', UUID_REGEX);

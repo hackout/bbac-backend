@@ -1,171 +1,229 @@
 <template>
-    <Layout>
-      <TopNav></TopNav>
-      <div class="page-block">
-        <div class="page-search">
-          <div class="page-search-form" style="width: 100%;">
-            <el-form :model="query" ref="query" inline @submit.native.prevent="onSearch">
-              <el-form-item>
-                <el-select style="width:120px" v-model="query.plant" placeholder="厂区筛选" @change="onSearch" clearable
-                  filterable>
-                  <el-option v-for="(item, index) in service_factory" :key="index" :value="item.value"
-                    :label="item.name"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <el-select style="width:120px" v-model="query.eb_type" placeholder="机型筛选" @change="onSearch" clearable
-                  filterable>
-                  <el-option v-for="(item, index) in eb_type" :key="index" :value="item.value"
-                    :label="item.name"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <el-select style="width:160px" v-model="query.type" placeholder="问题类型" @change="onSearch" clearable
-                  filterable>
-                  <el-option v-for="(item, index) in issue_type" :key="index" :value="item.value"
-                    :label="item.name"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <el-date-picker v-model="query.date" type="daterange" range-separator="至" start-placeholder="开始日期"
-                  end-placeholder="结束日期" clearable />
-              </el-form-item>
-              <el-form-item>
-                <el-input v-model="query.keyword" style="width:250px" placeholder="生产单号/发动机/电池号/问题描述"></el-input>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" native-type="submit">
-                  <span>查询</span>
-                </el-button>
-                <el-button native-type="reset">
-                  <span>重置</span>
-                </el-button>
-              </el-form-item>
-            </el-form>
-          </div>
+  <Layout>
+    <TopNav></TopNav>
+    <div class="page-block">
+      <div class="page-search">
+        <div class="page-search-buttons">
+          <el-button type="primary">手动创建/Create</el-button>
         </div>
-        <DataTable ref="table" :apiName="$route('vehicle.list')" @change-page="query.page = $event"
-          @change-page-size="query.limit = $event" height="550px" :params="query" stripe highlightCurrentRow>
-          <el-table-column label="序号" align="center" prop="id" width="80">
-            <template #default="scope">
-              <span>{{ scope.$index + 1 }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="机型" align="center" prop="eb_type" width="100">
-            <template #default="scope">
-              <el-tag size="small">{{ $status('eb_type', scope.row.eb_type) }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="考核员" align="center" prop="author" width="100"></el-table-column>
-          <el-table-column label="总成号" align="center" prop="assembly" width="100"></el-table-column>
-          <el-table-column label="发动机号" align="center" prop="product" width="100"></el-table-column>
-          <el-table-column label="缺陷判定" align="center" prop="type" width="150">
-            <template #default="scope">
-              <el-tag size="small">{{ $status('issue_type', scope.row.type) }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="备注" align="center" prop="plant" width="100">
-            <template #default="scope">
-              <el-tag size="small">{{ $status('service_factory', scope.row.plant) }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="内容" align="center" prop="description" min-width="250"></el-table-column>
-          <el-table-column label="提交时间" align="center" prop="created_at" width="175">
-            <template #default="scope">
-              <span>{{ $tool.dateFormat(scope.row.created_at) }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="Action Status" align="center" prop="due_end" width="135">
-            <template #default="scope">
-              <span class="status-tag"
-                :class="{ success: scope.row.due_end > 5, warning: scope.row.due_end <= 3 && scope.row.due_end > 0, danger: scope.row.due_end < 0 }"></span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" align="right" prop="action" width="55" fixed="right">
-            <template #default="scope">
-              <el-button type="primary" size="small" @click="viewItem(scope.row)" link>预览</el-button>
-              <el-button type="primary" size="small" @click="viewItem(scope.row)" link>维护</el-button>
-              <el-button type="primary" size="small" @click="viewItem(scope.row)" link>删除</el-button>
-            </template>
-          </el-table-column>
-        </DataTable>
+        <div class="page-search-form">
+          <el-form :model="query" ref="query" inline @submit.native.prevent="onSearch">
+            <el-form-item>
+              <el-select style="width:120px" v-model="query.engine" placeholder="机型筛选" @change="onSearch" clearable
+                filterable>
+                <el-option v-for="(item, index) in engine_type" :key="index" :value="item.value"
+                  :label="item.name"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-select style="width:160px" v-model="query.status" placeholder="考核状态" @change="onSearch" clearable
+                filterable>
+                <el-option v-for="(item, index) in task_status" :key="index" :value="item.value"
+                  :label="item.name"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-input v-model="query.keyword" style="width:250px" placeholder="发动机号/订单号/备注描述"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" native-type="submit">
+                <span>查询</span>
+              </el-button>
+              <el-button native-type="reset">
+                <span>重置</span>
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
-    </Layout>
-  </template>
-  <script>
-  
-  export default {
-    props: {
-      service_factory: {
-        type: Array,
-        default: []
-      },
-      eb_type: {
-        type: Array,
-        default: []
-      },
-      issue_type: {
-        type: Array,
-        default: []
-      }
+      <DataTable ref="table" :apiName="$route('vehicle.task_list')" @change-page="query.page = $event"
+        @change-page-size="query.limit = $event" height="550px" :params="query" stripe highlightCurrentRow>
+        <el-table-column align="center" prop="id" width="80">
+          <template #header>
+            <span>序号</span><br /><span>No.</span>
+          </template>
+          <template #default="scope">
+            <span>{{ scope.$index + 1 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="eb_type" width="100">
+          <template #header>
+            <span>机型</span><br /><span>Engine</span>
+          </template>
+          <template #default="scope">
+            <el-tag size="small">{{ $status('engine_type', scope.row.engine) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="auditor" width="150">
+          <template #header>
+            <span>考核员</span><br /><span>Auditor</span>
+          </template>
+          <template #default="scope">
+            <span v-if="scope.row.auditor">{{ scope.row.auditor }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="assembly" width="150">
+          <template #header>
+            <span>总成号</span><br /><span>Assembly</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="product" width="220">
+          <template #header>
+            <span>发动机号</span><br /><span>Engine No.</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="type" width="150">
+          <template #header>
+            <span>缺陷判定</span><br /><span>Finding</span>
+          </template>
+          <template #default="scope">
+            <el-tag size="small">{{ $status('defect_category', scope.row.defect_category) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="description" width="250">
+          <template #header>
+            <span>动态检查</span><br /><span>Dynamic Check</span>
+          </template>
+          <template #default="scope">
+            <el-text size="small" tag="ins" link>查看详情/Detail</el-text>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="plant" min-width="100">
+          <template #header>
+            <span>备注</span><br /><span>Remark</span>
+          </template>
+          <template #default="scope">
+            <el-text>{{ scope.row.remark }}</el-text>
+          </template>
+        </el-table-column>
+        <el-table-column align="right" prop="action" width="235" fixed="right">
+          <template #header>
+            <span>操作</span><br /><span>Operation</span>
+          </template>
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="viewItem(scope.row)" link>
+              <span>预览</span><br />
+              <small>Preview</small>
+            </el-button>
+            <el-button type="primary" size="small" @click="editItem(scope.row)" link>
+              <span>维护</span><br />
+              <small>Edit</small>
+            </el-button>
+            <el-popconfirm title="确定删除此项?" @confirm="deleteItem(scope.row)">
+              <template #reference>
+                <el-button type="primary" size="small" link>
+                  <span>删除</span><br />
+                  <small>Delete</small>
+                </el-button>
+              </template>
+            </el-popconfirm>
+            <el-button type="primary" v-if="!scope.row.auditor" @click="assignItem(scope.row)" size="small" link>
+              <span>分配任务</span><br />
+              <small>Assign Task</small>
+            </el-button>
+          </template>
+        </el-table-column>
+      </DataTable>
+    </div>
+  </Layout>
+</template>
+<script>
+
+export default {
+  props: {
+    defect_level: {
+      type: Array,
+      default: []
     },
-    data() {
-      return {
-        query: {
-          page: 1,
-          limit: 20,
-          plant: '',
-          eb_type: '',
-          type: '',
-          date: ['', ''],
-          keyword: ''
-        }
-      }
+    defect_category: {
+      type: Array,
+      default: []
     },
-    mounted() {
-      this.$nextTick(() => { })
+    task_status: {
+      type: Array,
+      default: []
     },
-    methods: {
-      viewItem(item){
-        this.$goTo('vehicle.detail',{id:item.id});
-      },
-      async onSearch() {
-        var validate = await this.$refs.query.validate().catch(() => { })
-        if (!validate) return false;
-        this.$nextTick(() => {
-          this.$refs.table.upData(this.query)
-        })
-      },
-      refreshData() {
-        this.editable = false
-        this.$refs.table.refresh()
+    engine_type: {
+      type: Array,
+      default: []
+    },
+  },
+  data() {
+    return {
+      query: {
+        page: 1,
+        limit: 20,
+        engine: '',
+        status: '',
+        keyword: ''
       }
     }
+  },
+  mounted() {
+    this.$nextTick(() => { })
+  },
+  methods: {
+    viewItem(item) {
+      this.$goTo('vehicle.task_detail', { id: item.id });
+    },
+    editItem(item) {
+      this.$goTo('vehicle.task_edit', { id: item.id });
+    },
+    assignItem(item){
+
+    },
+    async deleteItem(item) {
+      var res = await this.$axios.delete(this.$route('vehicle.task_delete', { id: item.id }))
+      this.deleting = false
+      if (res.code == this.$config.successCode) {
+        this.$message.success("删除考核成功")
+        this.refreshData()
+      } else {
+        this.$message.error(res.message)
+      }
+    },
+    async onSearch() {
+      var validate = await this.$refs.query.validate().catch(() => { })
+      if (!validate) return false;
+      this.$nextTick(() => {
+        this.$refs.table.upData(this.query)
+      })
+    },
+    refreshData() {
+      this.editable = false
+      this.$refs.table.refresh()
+    }
   }
-  </script>
-  
-  <style scoped>
-  .el-form-item-msg {
-    color: var(--el-link-color)
-  }
-  
-  .status-tag {
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    overflow: hidden;
-    display: inline-block;
-  }
-  
-  .status-tag.success {
-    background-color: var(--el-vehicle-success);
-  }
-  
-  .status-tag.danger {
-    background-color: var(--el-vehicle-danger);
-  }
-  
-  .status-tag.warning {
-    background-color: var(--el-vehicle-warning);
-  }
-  </style>
+}
+</script>
+
+<style scoped>
+.el-form-item-msg {
+  color: var(--el-link-color)
+}
+
+.status-tag {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.status-tag.success {
+  background-color: var(--el-vehicle-success);
+}
+
+.status-tag.danger {
+  background-color: var(--el-vehicle-danger);
+}
+
+.status-tag.warning {
+  background-color: var(--el-vehicle-warning);
+}
+
+:deep(.el-button > span) {
+  display: inline-block;
+}
+</style>

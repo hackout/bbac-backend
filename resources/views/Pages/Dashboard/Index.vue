@@ -1,7 +1,7 @@
 <template>
     <Layout>
       <el-card title="控制台面板">
-      <span>控制台面板</span>
+      <el-link href="/app.apk" target="_blank">下载APP</el-link>
       </el-card>
     </Layout>
   </template>

@@ -24,6 +24,7 @@ class IssueVehicleController extends Controller
     public function create(Request $request, IssueVehicleService $issueVehicleService): JsonResponse
     {
         $rules = [
+            'task_id' => 'sometimes|nullable|exists_or_null,tasks,id',
             'shift' => 'required|integer',
             'eb_type' => 'required|integer',
             'plant' => 'required|integer',
@@ -46,6 +47,7 @@ class IssueVehicleController extends Controller
         ];
 
         $messages = [
+            'task_id.exists_or_null' => __('issue_vehicle.task_id.exists_or_null'),
             'shift.required' => __('issue_vehicle.shift.required'),
             'eb_type.required' => __('issue_vehicle.eb_type.required'),
             'plant.required' => __('issue_vehicle.plant.required'),

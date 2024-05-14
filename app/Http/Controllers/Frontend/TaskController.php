@@ -456,67 +456,45 @@ class TaskController extends Controller
     public function vehicleUpdate(string $id, Request $request, TaskService $taskService): JsonResponse
     {
         $rules = [
-            'id' => 'exists_plus:tasks,id,' . $request->user()->id . ',user_id',
-            'item_id' => 'required|exists_plus:task_items,id,' . $id . ',task_id',
-            'content' => 'required|in:0,1',
-            'remark' => 'sometimes|nullable|max:200',
-            'options' => 'nullable|array',
-            'number' => 'required_if:content,0|nullable|max:200',
-            'status' => 'required_if:content,0|nullable|integer',
-            'scope' => 'required_if:content,0|nullable|max:200',
-            'ira' => 'required_if:content,0|nullable|max:200',
-            'description' => 'required_if:content,0|nullable|max:200',
-            'image' => 'required_if:content,0|nullable|array',
-            'picture' => 'required_if:content,0|nullable|array',
-            'image.*' => 'image',
-            'picture.*' => 'image',
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id,
+            'remark' => 'sometimes|nullable|max:250',
+            'status' => 'required|in:0,1',
+            'number' => 'required|array',
+            'number.*.id' => 'required|exists:task_items,id,task_id,' . $id,
+            'number.*.number' => 'required|between:1,100',
+            'image' => 'required|image',
         ];
         $messages = [
-            'id.exists_plus' => __('task.vehicle.update.id.exists_plus'),
-            'item_id.required' => __('task.vehicle.update.item_id.required'),
-            'item_id.exists_plus' => __('task.vehicle.update.item_id.exists_plus'),
-            'content.required' => __('task.vehicle.update.content.required'),
-            'content.in' => __('task.vehicle.update.content.in'),
+            'id.exists' => __('task.vehicle.update.id.exists'),
             'remark.max' => __('task.vehicle.update.remark.max'),
-            'options.required_if' => __('task.vehicle.update.options.required_if'),
-            'number.required_if' => __('task.vehicle.update.number.required_if'),
-            'status.required_if' => __('task.vehicle.update.status.required_if'),
-            'scope.required_if' => __('task.vehicle.update.scope.required_if'),
-            'ira.required_if' => __('task.vehicle.update.ira.required_if'),
-            'description.required_if' => __('task.vehicle.update.description.required_if'),
-            'image.required_if' => __('task.vehicle.update.image.required_if'),
-            'picture.required_if' => __('task.vehicle.update.picture.required_if'),
-            'options.array' => __('task.vehicle.update.options.array'),
-            'number.max' => __('task.vehicle.update.number.max'),
-            'status.integer' => __('task.vehicle.update.status.integer'),
-            'scope.max' => __('task.vehicle.update.scope.max'),
-            'ira.max' => __('task.vehicle.update.ira.max'),
-            'description.max' => __('task.vehicle.update.description.max'),
-            'image.array' => __('task.vehicle.update.image.array'),
-            'picture.array' => __('task.vehicle.update.picture.array'),
-            'image.*.image' => __('task.vehicle.update.image.*.image'),
-            'picture.*.image' => __('task.vehicle.update.picture.*.image'),
+            'status.required' => __('task.vehicle.update.status.required'),
+            'status.in' => __('task.vehicle.update.status.in'),
+            'image.required' => __('task.vehicle.update.image.required'),
+            'image.image' => __('task.vehicle.update.image.image'),
+            'number.required' => __('task.vehicle.update.number.required'),
+            'number.array' => __('task.vehicle.update.number.array'),
+            'number.*.id.required' => __('task.vehicle.update.number_id.required'),
+            'number.*.id.exists' => __('task.vehicle.update.number_id.exists'),
+            'number.*.number.required' => __('task.vehicle.update.number_number.required'),
+            'number.*.number.between' => __('task.vehicle.update.number_number.between'),
         ];
+        $_data = $request->all();
+        if (array_key_exists('number', $_data)) {
+            $_data['number'] = json_decode($_data['number'], true);
+        }
         $validator = Validator::make(array_merge([
             'id' => $id
-        ], $request->all()), $rules, $messages);
+        ], $_data), $rules, $messages);
 
         if ($validator->fails()) {
             return $this->error($validator->errors()->first());
         }
 
         $data = $validator->safe()->only([
-            'item_id',
-            'content',
             'remark',
-            'options',
-            'number',
             'status',
-            'scope',
-            'ira',
-            'description',
+            'number',
             'image',
-            'picture',
         ]);
 
         $result = $taskService->vehicleUpdate($request->user(), $id, $data);

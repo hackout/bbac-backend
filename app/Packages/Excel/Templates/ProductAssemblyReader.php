@@ -19,33 +19,26 @@ class ProductAssemblyReader
         $this->makeVariable();
     }
 
-    public function makeTemplate() :array
+    public function makeTemplate(): array
     {
         $result = [];
-        foreach($this->template as $rs)
-        {
-            if($rs['loop'])
-            {
-                foreach($this->issues as $key=>$issue)
-                {
+        foreach ($this->template as $rs) {
+            if ($rs['loop']) {
+                foreach ($this->issues as $key => $issue) {
                     $row = $rs;
-                    foreach($rs['data'] as $cell)
-                    {
-                        foreach($cell['value'] as $key=>$value)
-                        {
-                            $cell['value'][$key]['value'] = str_replace(array_keys($this->issuesVariables[$key]),array_values($this->issuesVariables[$key]),$value['value']);
+                    foreach ($rs['data'] as $cell) {
+                        foreach ($cell['value'] as $key => $value) {
+                            $cell['value'][$key]['value'] = str_replace(array_keys($this->issuesVariables[$key]), array_values($this->issuesVariables[$key]), $value['value']);
                         }
                         $row['data'][] = $cell;
                     }
                 }
-            }else{
+            } else {
                 $row = $rs;
                 $row['data'] = [];
-                foreach($rs['data'] as $cell)
-                {
-                    foreach($cell['value'] as $key=>$value)
-                    {
-                        $cell['value'][$key]['value'] = str_replace(array_keys($this->variables),array_values($this->variables),$value['value']);
+                foreach ($rs['data'] as $cell) {
+                    foreach ($cell['value'] as $key => $value) {
+                        $cell['value'][$key]['value'] = str_replace(array_keys($this->variables), array_values($this->variables), $value['value']);
                     }
                     $row['data'][] = $cell;
                 }
@@ -57,17 +50,23 @@ class ProductAssemblyReader
 
     private function makeVariable()
     {
+        $this->setTaskVariables();
+        $this->setDictionaryVariables();
+        $this->setExtraVariables();
+        $this->setExamineVariables();
+        $this->setTaskItemsVariables();
+        $this->setIssuesVariables();
+    }
+
+
+    private function setTaskVariables()
+    {
         $this->variables['id'] = $this->task->id;
         $this->variables['name'] = $this->task->name;
         $this->variables['remark'] = $this->task->remark;
         $this->variables['eb_number'] = $this->task->eb_number;
         $this->variables['number'] = $this->task->number;
         $this->variables['period'] = $this->task->period;
-        $this->variables['plant'] = (new DictService())->getNameByCode('plant', $this->task->plant);
-        $this->variables['line'] = (new DictService())->getNameByCode('assembly_line', $this->task->line);
-        $this->variables['engine'] = (new DictService())->getNameByCode('engine_type', $this->task->engine);
-        $this->variables['task_status'] = (new DictService())->getNameByCode('task_status', $this->task->task_status);
-        $this->variables['status'] = (new DictService())->getNameByCode('examine_status', $this->task->status);
         $this->variables['work_date'] = $this->task->start_at->toDateTimeString();
         $this->variables['start_at'] = $this->task->start_at->toDateTimeString();
         $this->variables['end_at'] = $this->task->end_at->toDateTimeString();
@@ -76,19 +75,39 @@ class ProductAssemblyReader
         $this->variables['auditor'] = optional(optional($this->task->user)->profile)->name ?? optional($this->task->user)->number;
         $this->variables['assembly'] = optional($this->task->assembly)->number;
         $this->variables['assembly_id'] = $this->task->assembly_id;
-        $this->variables['created_at'] = $this->task->created_at->toDateTimeString();
+    }
+
+    private function setDictionaryVariables()
+    {
+        $this->variables['plant'] = $this->getDictionaryName('plant', $this->task->plant);
+        $this->variables['line'] = $this->getDictionaryName('assembly_line', $this->task->line);
+        $this->variables['engine'] = $this->getDictionaryName('engine_type', $this->task->engine);
+        $this->variables['task_status'] = $this->getDictionaryName('task_status', $this->task->task_status);
+        $this->variables['status'] = $this->getDictionaryName('examine_status', $this->task->status);
+    }
+
+    private function setExtraVariables()
+    {
         if ($this->task->extra && is_array($this->task->extra) && array_key_exists('values', $this->task->extra)) {
             foreach ($this->task->extra['values'] as $key => $rs) {
                 $this->variables["extra.{$key}"] = $rs;
             }
         }
+    }
+
+    private function setExamineVariables()
+    {
         if ($this->task->examine instanceof ExamineProduct) {
             $this->variables['version'] = $this->task->original_examine['version'];
             $this->variables['examine_name'] = $this->task->original_examine['name'];
             $this->variables['examine_description'] = $this->task->original_examine['description'];
             $this->variables['examine_period'] = $this->task->original_examine['period'];
-            $this->variables['examine_type'] = (new DictService())->getNameByCode('examine_product_type', $this->task->original_examine['type']);
+            $this->variables['examine_type'] = $this->getDictionaryName('examine_product_type', $this->task->original_examine['type']);
         }
+    }
+
+    private function setTaskItemsVariables()
+    {
         if ($this->task->items) {
             foreach ($this->task->items as $item) {
                 $this->variables["{$item->examine_item->unique_id}.index"] = $item->sort_order;
@@ -96,18 +115,24 @@ class ProductAssemblyReader
                 $this->variables["{$item->examine_item->unique_id}.status"] = $item->content ? $item->content['status'] : null;
             }
         }
-        $this->issuesVariables = $this->issues->map(function (IssueProduct $item) {
+    }
+
+    private function setIssuesVariables()
+    {
+        $issues = IssueProduct::where('task_id', $this->task->id)->get();
+        $self = $this;
+        $this->variables['issues'] = $issues->map(function (IssueProduct $item) use ($self) {
             return [
-                'plant' => (new DictService())->getNameByCode('plant', $item->plant),
-                'line' => (new DictService())->getNameByCode('assembly_line', $item->line),
-                'engine' => (new DictService())->getNameByCode('engine_type', $item->engine),
-                'stage' => (new DictService())->getNameByCode('assembly_status', $item->stage),
-                'status' => (new DictService())->getNameByCode('issue_status', $item->status),
-                'defect_description' => (new DictService())->getNameByCode('defect_category', $item->defect_description),
-                'defect_level' => (new DictService())->getNameByCode('defect_level', $item->defect_level),
-                'defect_part' => (new DictService())->getNameByCode('problem_parts', $item->defect_part),
-                'defect_position' => (new DictService())->getNameByCode('question_position', $item->defect_position),
-                'defect_cause' => (new DictService())->getNameByCode('exactly_' . $item->defect_position, $item->defect_cause),
+                'plant' => $self->getDictionaryName('plant', $item->plant),
+                'line' => $self->getDictionaryName('assembly_line', $item->line),
+                'engine' => $self->getDictionaryName('engine_type', $item->engine),
+                'stage' => $self->getDictionaryName('assembly_status', $item->stage),
+                'status' => $self->getDictionaryName('issue_status', $item->status),
+                'defect_description' => $self->getDictionaryName('defect_category', $item->defect_description),
+                'defect_level' => $self->getDictionaryName('defect_level', $item->defect_level),
+                'defect_part' => $self->getDictionaryName('problem_parts', $item->defect_part),
+                'defect_position' => $self->getDictionaryName('question_position', $item->defect_position),
+                'defect_cause' => $self->getDictionaryName('exactly_' . $item->defect_position, $item->defect_cause),
                 'soma' => $item->soma,
                 'lama' => $item->lama,
                 'note' => $item->note,
@@ -119,5 +144,8 @@ class ProductAssemblyReader
         })->toArray();
     }
 
-
+    private function getDictionaryName($type, $code)
+    {
+        return (new DictService())->getNameByCode($type, $code);
+    }
 }

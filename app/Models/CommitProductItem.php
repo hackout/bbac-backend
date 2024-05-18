@@ -33,8 +33,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?float $upper_limit 测量上限
  * @property ?string $unit 测量单位
  * @property ?string $torque 拧紧扭矩要求
- * @property ?string $is_scan 是否扫码
- * @property ?string $is_camera 是否拍照
+ * @property ?bool $is_ds 是否DS
+ * @property ?bool $is_scan 是否扫码
+ * @property ?bool $is_camera 是否拍照
  * @property ?string $scan 扫码提示
  * @property ?string $camera 拍照提示
  * @property ?string $record 记录提示
@@ -76,6 +77,7 @@ class CommitProductItem extends Model implements HasMedia
         'upper_limit',
         'unit',
         'torque',
+        'is_ds',
         'is_scan',
         'is_camera',
         'scan',
@@ -93,6 +95,7 @@ class CommitProductItem extends Model implements HasMedia
         'number' => 'integer',
         'is_scan' => 'boolean',
         'is_camera' => 'boolean',
+        'is_ds' => 'boolean',
         'process' => 'decimal:2',
         'type' => 'integer',
         'sort_order' => 'integer',

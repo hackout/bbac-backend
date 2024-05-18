@@ -2,7 +2,9 @@
 namespace App\Services\Backend;
 
 use App\Models\Account;
+use App\Models\Department;
 use App\Models\User;
+use App\Packages\Department\DepartmentRole;
 use App\Services\Service;
 use App\Traits\ExportTemplateTrait;
 use App\Traits\ImportTemplateTrait;
@@ -153,6 +155,54 @@ class UserService extends Service
         return $result;
     }
 
+    public function getUserByVehicle(User $user)
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $departmentIdList = Department::where('role', Department::ROLE_VEHICLE)->select('id')->get()->pluck('id')->toArray();
+
+        $this->setQuery(function ($query) use ($departmentIdList) {
+            $query->whereIn('department_id', $departmentIdList);
+        });
+        return parent::getAll([
+            'id as value',
+            'profile.name as name',
+        ]);
+    }
+
+    public function getUserByProduct(User $user)
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $departmentIdList = Department::where('role', Department::ROLE_PRODUCT)->select('id')->get()->pluck('id')->toArray();
+
+        $this->setQuery(function ($query) use ($departmentIdList) {
+            $query->whereIn('department_id', $departmentIdList);
+        });
+        return parent::getAll([
+            'id as value',
+            'profile.name as name',
+        ]);
+    }
+
+    public function getUserByInline(User $user)
+    {
+        if (!DepartmentRole::checkInline($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $departmentIdList = Department::where('role', Department::ROLE_INLINE)->select('id')->get()->pluck('id')->toArray();
+
+        $this->setQuery(function ($query) use ($departmentIdList) {
+            $query->whereIn('department_id', $departmentIdList);
+        });
+        return parent::getAll([
+            'id as value',
+            'profile.name as name',
+        ]);
+    }
+
     public function getMemberByDepartment(string $department_id): array
     {
         $this->setQuery(['department_id' => $department_id]);
@@ -198,7 +248,7 @@ class UserService extends Service
             }
         }
         $this->setHas([
-            'profile' => function($query){
+            'profile' => function ($query) {
                 $query->whereNotNull('user_id');
             }
         ]);

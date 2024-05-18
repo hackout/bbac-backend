@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string("torque")->nullable()->comment('拧紧扭矩要求');
             $table->boolean('is_scan')->default(false)->comment('是否扫码');
             $table->boolean('is_camera')->default(false)->comment('是否拍照');
+            $table->boolean('is_ds')->default(false)->comment('是否DS');
             $table->longText('scan')->nullable()->comment('扫码说明');
             $table->longText('camera')->nullable()->comment('拍照说明');
             $table->longText('record')->nullable()->comment('记录提示');

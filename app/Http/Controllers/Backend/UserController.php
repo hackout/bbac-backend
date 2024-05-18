@@ -34,7 +34,7 @@ class UserController extends Controller
     public function index(Request $request, DictService $dictService): InertiaResponse
     {
         return Inertia::render('User/Index', [
-            'departments' => (new DepartmentService)->getFullOptions(),
+            'departments' => (new DepartmentService)->getFullOptions($request->user()),
             'roles' => (new RoleService)->getOptions(),
             'default_password' => env('DEFAULT_PASSWORD', '123456'),
             'gender' => $dictService->getOptionByCode('gender'),

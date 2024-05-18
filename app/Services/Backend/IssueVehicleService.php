@@ -253,7 +253,7 @@ class IssueVehicleService extends Service
      */
     private function canClose(string $id)
     {
-        if (!IssueVehicle::where(['id' => $id, 'status' => IssueVehicle::STATUS_CLOSED, 'is_block' => false,'block_status'=>IssueVehicle::BLOCK_STATUS_SUCCESS])->count()) {
+        if (!IssueVehicle::where(['id' => $id, 'is_block' => false,'block_status'=>IssueVehicle::BLOCK_STATUS_SUCCESS])->count()) {
             throw ValidationException::withMessages(['status.incorrect' => '车辆未放行,无法关闭问题']);
         }
     }

@@ -206,28 +206,28 @@ return [
     [
         'name' => '产品考核',
         'intro' => 'Product Audit',
-        'path' => 'task.product',
+        'path' => 'stuff.index',
         'icon' => 'el-icon-suitcase',
         'show' => true,
         'children' => [
             [
                 'name' => '产品考核',
-                'path' => 'task.product',
+                'path' => 'stuff.index',
                 'show' => true,
             ],
             [
                 'name' => '发动机装配',
-                'path' => 'product.engine',
+                'path' => 'stuff.engine',
                 'show' => true,
             ],
             [
                 'name' => '动态考核',
-                'path' => 'product.dynamic',
+                'path' => 'stuff.dynamic',
                 'show' => true,
             ],
             [
                 'name' => '问题追踪',
-                'path' => 'issue.product',
+                'path' => 'stuff.issue',
                 'show' => true,
             ]
         ]

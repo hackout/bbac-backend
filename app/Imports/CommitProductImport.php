@@ -51,9 +51,9 @@ class CommitProductImport implements ToCollection
         $itemSql = collect([]);
         $rows->each(function ($row, $index) use (&$itemSql, $dicts, $drawings) {
             if ($index > 2) {
-                $row = array_pad($row->toArray(), 32, null);
+                $row = array_pad($row->toArray(), 33, null);
                 $sql = [
-                    'part_id' => $dicts['parts']->where('name', trim($row[31]))->value('value'),
+                    'part_id' => $dicts['parts']->where('name', trim($row[32]))->value('value'),
                     'name' => trim($row[10]),
                     'name_en' => trim($row[12]),
                     'content' => trim($row[2]),
@@ -67,12 +67,13 @@ class CommitProductImport implements ToCollection
                     'upper_limit' => (float) trim($row[24]),
                     'unit' => trim($row[25]),
                     'torque' => trim($row[19]),
-                    'is_scan' => trim($row[28]) == 'Y',
-                    'is_camera' => trim($row[26]) == 'Y',
-                    'scan' => trim($row[27]),
-                    'camera' => trim($row[29]),
+                    'is_scan' => trim($row[29]) == 'Y',
+                    'is_camera' => trim($row[27]) == 'Y',
+                    'is_ds' => trim($row[26]) == 'Y',
+                    'scan' => trim($row[28]),
+                    'camera' => trim($row[30]),
                     'record' => trim($row[21]),
-                    'process' => intval(trim($row[30])),
+                    'process' => intval(trim($row[31])),
                     'type' => $dicts['types']->where('name', trim($row[1]))->value('value') ?? 0,
                     'sort_order' => intval($row[0]),
                     'options' => [],

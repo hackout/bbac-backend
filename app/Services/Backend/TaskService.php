@@ -1,13 +1,16 @@
 <?php
 namespace App\Services\Backend;
 
+use App\Packages\Excel\ExcelReader;
 use Str;
 use App\Models\Task;
 use App\Models\TaskItem;
+use App\Models\WorkItem;
+use App\Models\CommitProduct;
 use App\Models\User;
 use Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-
+use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use App\Packages\Department\DepartmentRole;
 use App\Services\Service;
@@ -177,6 +180,48 @@ class TaskService extends Service
     }
 
     /**
+     * 获取产品考核任务单列表
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User  $user
+     * @param  array $data
+     * @return array
+     */
+    public function getProductList(User $user, array $data): array
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $condition = [
+            'keyword' => ['search', ['name', 'id', 'number', 'eb_number']],
+            'engine' => 'eq',
+            'status' => 'eq',
+            'user_id' => 'eq',
+            'type' => ['eq', 'original_examine->type'],
+            'date' => ['daterange', 'created_at']
+        ];
+        parent::listQuery($data, $condition, [['type', '=', Task::TYPE_PRODUCT]]);
+        $result = parent::list();
+        $result['items'] = $result['items']->map(function (Task $item) {
+            return [
+                'id' => $item->id,
+                'engine' => $item->engine,
+                'user_id' => $item->user_id,
+                'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
+                'assembly_id' => $item->assembly_id,
+                'assembly' => optional($item->assembly)->number,
+                'eb_number' => $item->eb_number,
+                'finding' => optional($item->extra)['defect_category'],
+                'remark' => $item->remark,
+                'created_at' => $item->created_at,
+                'status' => $item->status,
+                'items' => $item->items
+            ];
+        });
+        return $result;
+    }
+
+    /**
      * 获取整车服务考核订单
      *
      * @author Dennis Lui <hackout@vip.qq.com>
@@ -208,7 +253,8 @@ class TaskService extends Service
                 'finding' => optional($item->extra)['defect_category'],
                 'remark' => $item->remark,
                 'created_at' => $item->created_at,
-                'status' => $item->status
+                'status' => $item->status,
+                'items' => $item->items
             ];
         });
         return $result;
@@ -266,6 +312,133 @@ class TaskService extends Service
             'status' => $item->status,
             'thumbnails' => $item->thumbnails,
 
+        ];
+    }
+
+    /**
+     * 获取产品考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return array
+     */
+    public function getProductDetail(User $user, string $id): array
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($id);
+        $fileName = [
+            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
+        ];
+        switch ($item->original_examine['type']) {
+            case CommitProduct::TYPE_OVERHAUL:
+                $fileName[] = 'Assembly';
+                break;
+            case CommitProduct::TYPE_ASSEMBLING:
+                $fileName[] = 'Reassembly';
+                break;
+            case CommitProduct::TYPE_DYNAMIC:
+                $fileName[] = 'Dynamic';
+                break;
+        }
+        $fileName[] = '.xlsx';
+        $templateFile = implode('',$fileName);
+        $file = resource_path('templates/'.$templateFile);
+        if(!file_exists($file))
+        {
+            throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
+        }
+        $templateData = (new ExcelReader($file));
+        return [
+            'template' => $templateData->readData(),
+            'id' => $item->id,
+            'engine' => $item->engine,
+            'user_id' => $item->user_id,
+            'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
+            'assembly_id' => $item->assembly_id,
+            'assembly' => optional($item->assembly)->number,
+            'eb_number' => $item->eb_number,
+            'finding' => optional($item->extra)['defect_category'],
+            'level' => optional($item->extra)['defect_level'],
+            'eight' => optional($item->extra)['eight'],
+            'resp' => optional($item->extra)['resp'],
+            'description' => optional($item->extra)['description'],
+            'next' => optional($item->extra)['next'],
+            'purpose' => optional($item->extra)['purpose'],
+            'plant' => $item->plant,
+            'line' => $item->line,
+            'remark' => $item->remark,
+            'created_at' => $item->created_at,
+            'status' => $item->status,
+            'thumbnails' => $item->thumbnails,
+            'items' => $item->items
+        ];
+    }
+    /**
+     * 获取产品考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return array
+     */
+    public function getProductPreview(User $user, string $id): array
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($id);
+        $fileName = [
+            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
+        ];
+        $templateName = null;
+        switch ($item->original_examine['type']) {
+            case CommitProduct::TYPE_OVERHAUL:
+                $fileName[] = 'Assembly';
+                $templateName = 'ProductAssemblyReader';
+                break;
+            case CommitProduct::TYPE_ASSEMBLING:
+                $fileName[] = 'Reassembly';
+                $templateName = 'ProductReassemblyReader';
+                break;
+            case CommitProduct::TYPE_DYNAMIC:
+                $fileName[] = 'Dynamic';
+                $templateName = 'ProductDynamicReader';
+                break;
+        }
+        $fileName[] = '.xlsx';
+        $templateFile = implode('',$fileName);
+        $file = resource_path('templates/'.$templateFile);
+        if(!file_exists($file))
+        {
+            throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
+        }
+        $templateData = (new ExcelReader($file));
+        return [
+            'template' => $templateData->readData($item,$templateName),
+            'id' => $item->id,
+            'engine' => $item->engine,
+            'user_id' => $item->user_id,
+            'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
+            'assembly_id' => $item->assembly_id,
+            'assembly' => optional($item->assembly)->number,
+            'eb_number' => $item->eb_number,
+            'finding' => optional($item->extra)['defect_category'],
+            'level' => optional($item->extra)['defect_level'],
+            'eight' => optional($item->extra)['eight'],
+            'resp' => optional($item->extra)['resp'],
+            'description' => optional($item->extra)['description'],
+            'next' => optional($item->extra)['next'],
+            'purpose' => optional($item->extra)['purpose'],
+            'plant' => $item->plant,
+            'line' => $item->line,
+            'remark' => $item->remark,
+            'created_at' => $item->created_at,
+            'status' => $item->status,
+            'thumbnails' => $item->thumbnails,
+            'items' => $item->items
         ];
     }
 
@@ -347,5 +520,28 @@ class TaskService extends Service
             'uuid' => Str::afterLast($file, '/')
         ];
         return $result;
+    }
+
+    /**
+     * 整车服务考核分配工时
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User  $user
+     * @param  array $data
+     * @return void
+     */
+    public function assignVehicle(User $user, array $data)
+    {
+        if (!DepartmentRole::checkVehicle($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+
+        (new WorkService())->createWork([
+            'date' => Carbon::now()->toDateString(),
+            'user_id' => $data['user_id'],
+            'type' => WorkItem::TYPE_DYNAMIC,
+            'period' => $data['period'],
+            'task_id' => $data['task_id']
+        ]);
     }
 }

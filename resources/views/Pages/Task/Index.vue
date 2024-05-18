@@ -47,7 +47,7 @@
           </template>
         </el-table-column>
         <el-table-column label="考核ID" align="center" prop="number" width="400"></el-table-column>
-        <el-table-column label="考核名称" align="center" prop="name" width="150"></el-table-column>
+        <el-table-column label="考核名称" align="center" prop="name" min-width="200"></el-table-column>
         <el-table-column label="考核对象" align="center" prop="target" min-width="250">
           <template #default="scope">
             <span>{{ getTarget(scope.row) }}</span>

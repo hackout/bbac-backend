@@ -36,6 +36,7 @@ class CommitProductItemService extends Service
         return parent::getAll()->map(function (CommitProductItem $item) {
             return [
                 'id' => $item->id,
+                'unique_id' => $item->unique_id,
                 'part_id' => $item->part_id,
                 'name' => $item->name,
                 'name_en' => $item->name_en,
@@ -52,6 +53,7 @@ class CommitProductItemService extends Service
                 'torque' => $item->torque,
                 'is_scan' => $item->is_scan,
                 'is_camera' => $item->is_camera,
+                'is_ds' => $item->is_ds,
                 'scan' => $item->scan,
                 'camera' => $item->camera,
                 'record' => $item->record,
@@ -148,6 +150,7 @@ class CommitProductItemService extends Service
             'torque' => array_key_exists('torque', $data) ? trim($data['torque']) : null,
             'is_scan' => array_key_exists('is_scan', $data) ? trim($data['is_scan']) == 'Y' : false,
             'is_camera' => array_key_exists('is_camera', $data) ? trim($data['is_camera']) == 'Y' : false,
+            'is_ds' => array_key_exists('is_ds', $data) ? trim($data['is_ds']) == 'Y' : false,
             'scan' => array_key_exists('scan', $data) ? trim($data['scan']) : null,
             'camera' => array_key_exists('camera', $data) ? trim($data['camera']) : null,
             'record' => array_key_exists('record', $data) ? trim($data['record']) : null,
@@ -202,6 +205,7 @@ class CommitProductItemService extends Service
             'torque' => array_key_exists('torque', $data) ? trim($data['torque']) : null,
             'is_scan' => array_key_exists('is_scan', $data) ? trim($data['is_scan']) == 'Y' : false,
             'is_camera' => array_key_exists('is_camera', $data) ? trim($data['is_camera']) == 'Y' : false,
+            'is_ds' => array_key_exists('is_ds', $data) ? trim($data['is_ds']) == 'Y' : false,
             'scan' => array_key_exists('scan', $data) ? trim($data['scan']) : null,
             'camera' => array_key_exists('camera', $data) ? trim($data['camera']) : null,
             'record' => array_key_exists('record', $data) ? trim($data['record']) : null,

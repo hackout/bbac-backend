@@ -273,6 +273,10 @@ class IssueVehicleService extends Service
             'block_status' => $data['block_status'],
             'user_id' => $user->id
         ];
+        if($data['block_status'] == IssueVehicle::BLOCK_STATUS_SUCCESS)
+        {
+            $sql['is_block'] = false;
+        }
         if (array_key_exists('block_content', $data)) {
             $sql['block_content'] = $data['block_content'];
         }

@@ -56,6 +56,7 @@ class TaskService extends Service
                 'end_at' => $item->end_at,
                 'valid_at' => $item->valid_at,
                 'overdue' => optional($item->valid_at)->lt($now) ?? false,
+                'lastTime' => optional($item->valid_at)->diffInSeconds($now, true),
                 'task_status' => $item->task_status,
                 'plant' => $item->plant,
                 'line' => $item->line,
@@ -90,7 +91,7 @@ class TaskService extends Service
             }
             return [
                 'id' => $item->id,
-                'content' => $item->content,
+                'content' => $item->content ? json_decode($item->content, true) : [],
                 'sort_order' => $item->sort_order,
                 'remark' => $item->remark,
                 'extra' => $item->extra,
@@ -104,10 +105,11 @@ class TaskService extends Service
         if ($workItem->status == WorkItem::STATUS_PENDING) {
             $now = Carbon::now();
             $task->fill([
-                'task_status' => WorkItem::STATUS_PROCESSING,
+                'task_status' => Task::STATUS_PROCESSING,
                 'start_at' => $now,
                 'valid_at' => $now->clone()->addHours($task->period)
             ]);
+            $task->save();
             $workItem->fill([
                 'status' => WorkItem::STATUS_PROCESSING,
                 'work_date' => Carbon::now()
@@ -121,6 +123,8 @@ class TaskService extends Service
             'task_status' => $task->task_status,
             'plant' => $task->plant,
             'line' => $task->line,
+            'remark' => $task->remark,
+            'thumbnails' => $task->thumbnails,
             'engine' => $task->engine,
             'status' => $workItem->status,
             'start_date' => $workItem->work_date,
@@ -156,7 +160,7 @@ class TaskService extends Service
         $sql = [
             'remark' => array_key_exists('remark', $data) ? $data['remark'] : $task->remark,
             'end_at' => $now,
-            'task_status' => $timeStatus
+            'task_status' => Task::STATUS_COMPLETED
         ];
         $status = (bool) $data['status'];
         $task->fill($sql);
@@ -178,7 +182,7 @@ class TaskService extends Service
             $workList = WorkItem::where(['user_id' => $user->id, 'task_id' => $task->id])->get();
             $workList->each(fn(WorkItem $workItem) => $workItem->setFinish($timeStatus));
         }
-
+        $this->clearCache();
 
     }
 

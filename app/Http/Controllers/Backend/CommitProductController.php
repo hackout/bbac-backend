@@ -172,6 +172,34 @@ class CommitProductController extends Controller
         return $this->success();
     }
 
+
+    /**
+     * 上传产品考核-记录模板
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request         $request
+     * @param  CommitProductService $commitProductService
+     * @return JsonResponse
+     */
+    public function upload(Request $request, CommitProductService $commitProductService): JsonResponse
+    {
+        $rules = [
+            'type' => 'required|in:assembly,reassembly,dynamic',
+            'engine' => 'required|integer',
+            'file' => 'required'
+        ];
+        $messages = [
+            'type.required' => '上传类型不能为空',
+            'type.in' => '上传类型不正确',
+            'engine.required' => '发动机机型不能为空',
+            'engine.integer' => '发动机机型不正确',
+            'file.required' => '模板不能为空',
+        ];
+        $data = $request->validate($rules,$messages);
+        $commitProductService->uploadTemplate($data['type'], (int) $data['engine'],$data['file']);
+        return $this->success();
+    }
+
     /**
      * 产品考核-考核定义详情
      *

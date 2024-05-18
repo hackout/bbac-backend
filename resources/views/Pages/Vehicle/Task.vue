@@ -4,7 +4,7 @@
     <div class="page-block">
       <div class="page-search">
         <div class="page-search-buttons">
-          <el-button type="primary">手动创建/Create</el-button>
+          <el-button type="primary" @click="addItem">手动创建/Create</el-button>
         </div>
         <div class="page-search-form">
           <el-form :model="query" ref="query" inline @submit.native.prevent="onSearch">
@@ -86,10 +86,10 @@
             <span>动态检查</span><br /><span>Dynamic Check</span>
           </template>
           <template #default="scope">
-            <el-text size="small" tag="ins" link>查看详情/Detail</el-text>
+            <el-text size="small" @click="openDetail(scope.row)" tag="ins" link>查看详情/Detail</el-text>
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="plant" min-width="100">
+        <el-table-column align="center" prop="plant" min-width="200">
           <template #header>
             <span>备注</span><br /><span>Remark</span>
           </template>
@@ -125,14 +125,35 @@
           </template>
         </el-table-column>
       </DataTable>
+      <SaveDialog ref="SaveDialog" :users="users" v-if="SaveDialogVisit" @success="refreshData" @closed="SaveDialogVisit = false"></SaveDialog>
+      <DetailDialog ref="DetailDialog" :examine_vehicle_item_type="examine_vehicle_item_type" v-if="DetailDialogVisit" @success="refreshData" @closed="DetailDialogVisit = false"></DetailDialog>
+      <AddDialog ref="AddDialog"
+        :examine_type="examine_type"
+        :status="status"
+        :plant="plant"
+        :line="line"
+        :engine_type="engine_type"
+        :task_status="task_status"
+      v-if="AddDialogVisit" @success="refreshData" @closed="AddDialogVisit = false"></AddDialog>
     </div>
   </Layout>
 </template>
 <script>
-
+import AddDialog from "./Addons/AddDialog.vue";
+import SaveDialog from "./Addons/SaveDialog.vue";
+import DetailDialog from "./Addons/DetailDialog.vue";
 export default {
+  components:{
+    AddDialog,
+    SaveDialog,
+    DetailDialog
+  },
   props: {
     defect_level: {
+      type: Array,
+      default: []
+    },
+    examine_vehicle_item_type: {
       type: Array,
       default: []
     },
@@ -148,6 +169,26 @@ export default {
       type: Array,
       default: []
     },
+    users: {
+      type: Array,
+      default: []
+    },
+    examine_type: {
+      type: Array,
+      default: []
+    },
+    status: {
+      type: Array,
+      default: []
+    },
+    plant: {
+      type: Array,
+      default: []
+    },
+    line: {
+      type: Array,
+      default: []
+    },
   },
   data() {
     return {
@@ -157,11 +198,15 @@ export default {
         engine: '',
         status: '',
         keyword: ''
-      }
+      },
+      SaveDialogVisit: false,
+      DetailDialogVisit: false,
+      AddDialogVisit: false,
     }
   },
   mounted() {
-    this.$nextTick(() => { })
+    this.$nextTick(() => {
+    })
   },
   methods: {
     viewItem(item) {
@@ -171,7 +216,24 @@ export default {
       this.$goTo('vehicle.task_edit', { id: item.id });
     },
     assignItem(item){
-
+      this.SaveDialogVisit = true
+      this.$nextTick(()=>{
+        this.$refs.SaveDialog.open(item)
+      })
+    },
+    addItem()
+    {
+      this.AddDialogVisit = true
+      this.$nextTick(()=>{
+        this.$refs.AddDialog.open()
+      })
+    },
+    openDetail(item)
+    {
+      this.DetailDialogVisit = true
+      this.$nextTick(()=>{
+        this.$refs.DetailDialog.open(item)
+      })
     },
     async deleteItem(item) {
       var res = await this.$axios.delete(this.$route('vehicle.task_delete', { id: item.id }))
@@ -201,26 +263,6 @@ export default {
 <style scoped>
 .el-form-item-msg {
   color: var(--el-link-color)
-}
-
-.status-tag {
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  overflow: hidden;
-  display: inline-block;
-}
-
-.status-tag.success {
-  background-color: var(--el-vehicle-success);
-}
-
-.status-tag.danger {
-  background-color: var(--el-vehicle-danger);
-}
-
-.status-tag.warning {
-  background-color: var(--el-vehicle-warning);
 }
 
 :deep(.el-button > span) {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Services\Backend\TaskService;
+use App\Services\Backend\UserService;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -386,6 +387,12 @@ class VehicleController extends Controller
             'defect_category' => $dictService->getOptionByCode('defect_category'),
             'task_status' => $dictService->getOptionByCode('task_status'),
             'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'examine_vehicle_item_type' => $dictService->getOptionByCode('examine_vehicle_item_type'),
+            'examine_type' => $dictService->getOptionByCode('examine_type'),
+            'status' => $dictService->getOptionByCode('assembly_status'),
+            'plant' => $dictService->getOptionByCode('plant'),
+            'line' => $dictService->getOptionByCode('assembly_line'),
+            'users' => (new UserService())->getUserByVehicle($request->user())
         ]);
     }
 
@@ -450,6 +457,36 @@ class VehicleController extends Controller
         ]);
     }
 
+    public function taskAssign(Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'task_id' => 'required|exists:tasks,id,type,3',
+            'user_id' => 'required|exists:users,id',
+            'period' => 'required|between:0,100'
+        ];
+        $messages = [
+            'task_id.required' => '考核单不能为空',
+            'user_id.required' => '员工不能为空',
+            'period.required' => '分配工时不能为空',
+            'task_id.exists' => '考核单不存在或已删除',
+            'user_id.exists' => '员工不存在或已删除',
+            'period.between' => '分配工时错误'
+        ];
+        $data = $request->validate($rules, $messages);
+        $taskService->assignVehicle($request->user(), $data);
+        return $this->success();
+    }
+
+    /**
+     * 整车服务-动态考核编辑
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string                       $id
+     * @param  Request                      $request
+     * @param  DictService                  $dictService
+     * @param  TaskService                  $taskService
+     * @return InertiaResponse|JsonResponse
+     */
     public function taskEdit(string $id, Request $request, DictService $dictService, TaskService $taskService): InertiaResponse|JsonResponse
     {
         if ($request->ajax() && $request->method() == 'PUT') {
@@ -509,7 +546,7 @@ class VehicleController extends Controller
                 'thumbnails',
                 'media'
             ]);
-            $taskService->updateVehicle($request->user(),$id,$data);
+            $taskService->updateVehicle($request->user(), $id, $data);
             return $this->success();
         }
         $rules = [

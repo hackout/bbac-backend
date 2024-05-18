@@ -289,7 +289,7 @@ class WorkService extends Service
             'user_id' => $data['user_id'],
             'task_id' => optional($task)->id,
             'work_id' => $work->id,
-            'content' => trim($data['content']),
+            'content' => array_key_exists('content',$data) ? trim($data['content']) : optional($task)->name,
             'type' => $type,
             'status' => $status,
             'period' => $period,

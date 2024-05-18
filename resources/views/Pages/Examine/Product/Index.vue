@@ -12,14 +12,29 @@
                     <el-divider direction="vertical" />
                     <el-button type="primary" @click="$goTo('commit_product.template')" link
                         icon="el-icon-download">模板</el-button>
+                    <el-divider direction="vertical" />
+
+                    <el-dropdown style="vertical-align: middle;" @command="moreCommand">
+                        <el-button type="primary" link>更多模板</el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="download_assembly">下载拆检记录模板</el-dropdown-item>
+                                <el-dropdown-item command="download_reassembly">下载装配记录模板</el-dropdown-item>
+                                <el-dropdown-item command="download_dynamic">下载动态考核记录模板</el-dropdown-item>
+                                <el-dropdown-item divided command="upload_assembly">上传拆检记录模板</el-dropdown-item>
+                                <el-dropdown-item command="upload_reassembly">上传装配记录模板</el-dropdown-item>
+                                <el-dropdown-item command="upload_dynamic">上传动态考核记录模板</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
                 </div>
                 <div class="page-search-form">
                     <el-form :model="query" ref="query" inline @submit.native.prevent="onSearch">
                         <el-form-item>
                             <el-select style="width:110px" v-model="query.type" @change="onSearch" placeholder="考核类型"
                                 clearable>
-                                <el-option v-for="(item, index) in examine_product_type" :key="index" :value="item.value"
-                                    :label="item.name"></el-option>
+                                <el-option v-for="(item, index) in examine_product_type" :key="index"
+                                    :value="item.value" :label="item.name"></el-option>
                             </el-select>
                         </el-form-item>
                         <el-form-item>
@@ -114,6 +129,26 @@
                 </el-col>
             </el-row>
         </el-dialog>
+        <el-dialog v-model="uploadDialogVisit" :title="titles[form.type]">
+            <el-form :model="form" :rules="rules" label-width="150px" ref="form"
+                @submit.native.prevent="uploadTemplate">
+                <el-form-item label="发动机机型" prop="engine">
+                    <el-select style="width:100%" v-model="form.engine" placeholder="发动机机型" clearable filterable>
+                        <el-option v-for="(item, index) in engine_type" :key="index" :value="item.value"
+                            :label="item.name"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="上传模板" prop="file">
+                    <el-input type="file" id="fileTemplate" v-model="form.file" placeholder="请输入上传模板" clearable></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="uploadDialogVisit = false">取消</el-button>
+                    <el-button type="primary" @click="uploadTemplate">提交保存</el-button>
+                </div>
+            </template>
+        </el-dialog>
         <DetailDialog v-if="detailVisit" @success="refreshData" @closed="detailVisit = false" ref="DetailDialog"
             :examine_product_item_type="examine_product_item_type" :template_status="template_status"
             :engine_type="engine_type">
@@ -123,8 +158,8 @@
         </SaveDialog>
         <ApproveDialog v-if="approveVisit" @success="refreshData" @closed="approveVisit = false" ref="ApproveDialog">
         </ApproveDialog>
-        <ItemDrawer v-if="viewable" @success="refreshData" @closed="viewable = false" ref="ItemDrawer"
-            :parts="parts" :examine_product_type="examine_product_type" :examine_product_item_type="examine_product_item_type">
+        <ItemDrawer v-if="viewable" @success="refreshData" @closed="viewable = false" ref="ItemDrawer" :parts="parts"
+            :examine_product_type="examine_product_type" :examine_product_item_type="examine_product_item_type">
         </ItemDrawer>
     </Layout>
 </template>
@@ -180,7 +215,28 @@ export default {
             viewable: false,
             detailVisit: false,
             chooseAddVisit: false,
-            approveVisit: false
+            approveVisit: false,
+            uploadDialogVisit: false,
+            form: {
+                engine: '',
+                type: '',
+                file: null
+            },
+            titles: {
+                dynamic: '上传动态考核记录模板',
+                assembly: '上传拆检记录模板',
+                reassembly: '上传装配记录模板'
+            },
+            rules: {
+                engine: [
+                    { required: true, message: '请选择发动机机型', trigger: 'change' }
+                ],
+                file: [
+                    {
+                        required: true, message: '请上传模板', trigger: 'change'
+                    }
+                ]
+            }
         }
     },
     mounted() {
@@ -189,6 +245,66 @@ export default {
         })
     },
     methods: {
+        moreCommand(val) {
+            switch (val) {
+                case 'download_assembly':
+                    window.location.href = '/ProductAssemblyTemplate.xlsx'
+                    break;
+                case 'download_reassembly':
+                    window.location.href = '/ProductReassemblyTemplate.xlsx'
+                    break;
+                case 'download_dynamic':
+                    window.location.href = '/ProductDynamicTemplate.xlsx'
+                    break;
+                case 'upload_assembly':
+                    this.form = {
+                        engine: '',
+                        type: 'assembly',
+                        file: null
+                    }
+                    this.uploadDialogVisit = true
+                    break;
+                case 'upload_dynamic':
+                    this.form = {
+                        engine: '',
+                        type: 'dynamic',
+                        file: null
+                    }
+                    this.uploadDialogVisit = true
+                    break;
+                case 'upload_reassembly':
+                    this.form = {
+                        engine: '',
+                        type: 'reassembly',
+                        file: null
+                    }
+                    this.uploadDialogVisit = true
+                    break;
+            }
+        },
+        uploadTemplate() {
+            this.$refs.form.validate().then(async valid => {
+                if (valid) {
+                    let form = new FormData()
+                    form.append('engine', this.form.engine)
+                    form.append('type', this.form.type)
+                    const fileInput = document.querySelector('#fileTemplate');
+                    const file = fileInput.files[0];
+                    form.append('file', file)
+                    let res = await this.$axios.post(this.$route('commit_product.upload'), form, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    if (res.code == this.$config.successCode) {
+                        this.$message.success('上传模板成功')
+                        this.uploadDialogVisit = false
+                    } else {
+                        this.$message.error(res.message)
+                    }
+                }
+            }).catch(() => { })
+        },
         addItemByType(type) {
             this.editable = true
             this.chooseAddVisit = false

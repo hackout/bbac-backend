@@ -64,7 +64,7 @@
                         <el-input v-model="form.unit" placeholder="请输入测量单位" clearable></el-input>
                     </el-form-item>
                 </el-col>
-                <el-col :span="12">
+                <el-col :span="8">
                     <el-form-item label="是否扫码" prop="is_scan">
                         <el-radio-group v-model="form.is_scan">
                             <el-radio :label="1" size="large" border>YES</el-radio>
@@ -72,9 +72,17 @@
                         </el-radio-group>
                     </el-form-item>
                 </el-col>
-                <el-col :span="12">
+                <el-col :span="8">
                     <el-form-item label="是否拍照" prop="is_camera">
                         <el-radio-group v-model="form.is_camera">
+                            <el-radio :label="1" size="large" border>YES</el-radio>
+                            <el-radio :label="0" size="large" border>NO</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                    <el-form-item label="是否DS" prop="is_ds">
+                        <el-radio-group v-model="form.is_ds">
                             <el-radio :label="1" size="large" border>YES</el-radio>
                             <el-radio :label="0" size="large" border>NO</el-radio>
                         </el-radio-group>
@@ -177,6 +185,7 @@ export default {
                 torque: '',
                 is_scan: '',
                 is_camera: '',
+                is_ds: '',
                 scan: '',
                 camera: '',
                 record: '',
@@ -233,6 +242,7 @@ export default {
                     torque: item.torque,
                     is_scan: item.is_scan ? 1 : 0,
                     is_camera: item.is_camera ? 1 : 0,
+                    is_ds: item.is_ds ? 1 : 0,
                     scan: item.scan,
                     camera: item.camera,
                     record: item.record,
@@ -260,6 +270,7 @@ export default {
                     torque: '',
                     is_scan: 0,
                     is_camera: 0,
+                    is_ds: 0,
                     scan: '',
                     camera: '',
                     record: '',

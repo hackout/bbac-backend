@@ -40,6 +40,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $eight_disciplines 8D
  * @property int $status 问题状态
  * @property int $type 考核类型
+ * @property bool $is_ok OK/NOK
  * @property-read ?Carbon $created_at 提交时间
  * @property-read ?Carbon $updated_at 更新时间
  * @property-read ?User $author 提交人

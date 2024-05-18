@@ -11,6 +11,7 @@ use App\Http\Controllers\Backend\PlanController;
 use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\Backend\PartController;
+use App\Http\Controllers\Backend\StuffController;
 use App\Http\Controllers\Backend\IssueController;
 use App\Http\Controllers\Backend\ReportController;
 use App\Http\Controllers\Backend\CustomController;
@@ -359,6 +360,7 @@ Route::middleware("auth")->group(function () {
                 Route::post('/import', [CommitProductController::class, 'import'])->name('commit_product.import');
                 Route::get('/template', [CommitProductController::class, 'template'])->name('commit_product.template');
                 Route::get('/option', [CommitProductController::class, 'option'])->name('commit_product.option');
+                Route::post('/upload', [CommitProductController::class, 'upload'])->name('commit_product.upload');
 
                 //考核项
                 Route::group(['prefix' => '/item'], function () {
@@ -451,6 +453,7 @@ Route::middleware("auth")->group(function () {
             Route::get('/task', [VehicleController::class, 'task'])->name('vehicle.task');
             Route::get('/task/list', [VehicleController::class, 'taskList'])->name('vehicle.task_list');
             Route::get('/task/{id}', [VehicleController::class, 'taskDetail'])->name('vehicle.task_detail')->where('id', UUID_REGEX);
+            Route::post('/task/assign', [VehicleController::class, 'taskAssign'])->name('vehicle.task_assign');
             Route::get('/task/{id}/edit', [VehicleController::class, 'taskEdit'])->name('vehicle.task_edit')->where('id', UUID_REGEX);
             Route::post('/task/{id}/upload', [VehicleController::class, 'taskUpload'])->name('vehicle.task_upload')->where('id', UUID_REGEX);
             Route::put('/task/{id}/edit', [VehicleController::class, 'taskEdit'])->where('id', UUID_REGEX);
@@ -461,6 +464,22 @@ Route::middleware("auth")->group(function () {
             Route::get('/report/{id}', [VehicleController::class, 'report'])->name('vehicle.report')->where('id', UUID_REGEX);
             Route::put('/{id}', [VehicleController::class, 'update'])->name('vehicle.update')->where('id', UUID_REGEX);
             Route::patch('/{id}', [VehicleController::class, 'close'])->name('vehicle.close')->where('id', UUID_REGEX);
+        });
+
+        //产品考核
+        Route::group(['prefix' => '/stuff'], function () {
+            Route::get('/', [StuffController::class, 'index'])->name('stuff.index');
+            Route::get('/engine', [StuffController::class, 'engine'])->name('stuff.engine');
+            Route::get('/dynamic', [StuffController::class, 'dynamic'])->name('stuff.dynamic');
+            Route::get('/list', [StuffController::class, 'list'])->name('stuff.list');
+            Route::post('/', [StuffController::class, 'create'])->name('stuff.create');
+            Route::get('/{id}', [StuffController::class, 'detail'])->name('stuff.detail')->where('id', UUID_REGEX);
+            Route::get('/{id}/preview', [StuffController::class, 'preview'])->name('stuff.preview')->where('id', UUID_REGEX);
+            Route::put('/{id}', [StuffController::class, 'update'])->name('stuff.update')->where('id', UUID_REGEX);
+            Route::delete('/{id}', [StuffController::class, 'delete'])->name('stuff.delete')->where('id', UUID_REGEX);
+            Route::post('/export', [StuffController::class, 'export'])->name("stuff.export");
+            Route::post('/import', [StuffController::class, 'import'])->name('stuff.import');
+            Route::get('/template', [StuffController::class, 'template'])->name('stuff.template');
         });
 
         //导出报表

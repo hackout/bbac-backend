@@ -4,14 +4,18 @@
             <el-table-column prop="sort_order" align="center" label="序号" width="100"></el-table-column>
             <el-table-column prop="type" align="center" label="检查类型" width="135">
                 <template #default="scope">
-                    <el-tag size="small">{{ $status('examine_product_item_type', scope.row.type) }}</el-tag>
+                    <el-tooltip effect="dark" :content="scope.row.unique_id" placement="bottom">
+                        <el-tag size="small">{{ $status('examine_product_item_type', scope.row.type) }}</el-tag>
+                    </el-tooltip>
                 </template>
             </el-table-column>
             <el-table-column label="工作内容" prop="content" min-width="180px">
                 <template #default="scope">
                     <el-tooltip effect="dark" :disabled="!scope.row.content_en" :content="scope.row.content_en"
                         placement="bottom">
-                        <el-text>{{ scope.row.content }}</el-text>
+                        <el-badge value="DS" :hidden="!scope.row.is_ds" class="item">
+                            <el-text>{{ scope.row.content }}</el-text>
+                        </el-badge>
                     </el-tooltip>
                 </template>
             </el-table-column>
@@ -236,5 +240,10 @@ export default {
 
 .chooseDialog .el-dialog__header {
     display: none !important;
+}
+
+:deep(.el-badge__content.is-fixed) {
+    top: 10px;
+    right: 0;
 }
 </style>

@@ -185,4 +185,20 @@ class CommitProductService extends Service
     {
         return (new CommitPlus(parent::findById($id)))->getChanged();
     }
+
+    /**
+     * 上传记录模板
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string       $type
+     * @param  integer      $engine
+     * @param  UploadedFile $file
+     * @return void
+     */
+    public function uploadTemplate(string $type,int $engine,UploadedFile $file)
+    {
+        $engine = (new DictService())->getNameByCode('engine_type',$engine);
+        $fileName = $engine.ucfirst($type).'.'.$file->getClientOriginalExtension();
+        $file->move(resource_path('templates'),$fileName);
+    }
 }

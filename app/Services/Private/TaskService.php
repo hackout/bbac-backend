@@ -142,7 +142,7 @@ class TaskService extends Service
     public function checkStartByItem(TaskItem $taskItem)
     {
         if (!$taskItem->task->start_at) {
-            $period = $taskItem->period;
+            $period = $taskItem->task->period;
             $hours = intval($period);
             $minutes = intval(($period - $hours) * 60);
             $sql = [

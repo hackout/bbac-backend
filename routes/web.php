@@ -475,9 +475,9 @@ Route::middleware("auth")->group(function () {
             Route::post('/', [StuffController::class, 'create'])->name('stuff.create');
             Route::get('/{id}', [StuffController::class, 'detail'])->name('stuff.detail')->where('id', UUID_REGEX);
             Route::get('/{id}/preview', [StuffController::class, 'preview'])->name('stuff.preview')->where('id', UUID_REGEX);
+            Route::get('/{id}/export', [StuffController::class, 'export'])->name('stuff.export')->where('id', UUID_REGEX);
             Route::put('/{id}', [StuffController::class, 'update'])->name('stuff.update')->where('id', UUID_REGEX);
             Route::delete('/{id}', [StuffController::class, 'delete'])->name('stuff.delete')->where('id', UUID_REGEX);
-            Route::post('/export', [StuffController::class, 'export'])->name("stuff.export");
             Route::post('/import', [StuffController::class, 'import'])->name('stuff.import');
             Route::get('/template', [StuffController::class, 'template'])->name('stuff.template');
         });

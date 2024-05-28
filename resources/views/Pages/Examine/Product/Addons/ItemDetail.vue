@@ -14,9 +14,9 @@
                     }}</span></el-descriptions-item>
             <el-descriptions-item label-class-name="detail-box-label" label="测量项(英文)" v-if="item.type == 1 || item.type == 3"><span>{{ item.name_en
                     }}</span></el-descriptions-item>
-            <el-descriptions-item label-class-name="detail-box-label" label="目测检查(中文)" v-if="item.type == 2 || item.type == 3"><span>{{ item.eye
+            <el-descriptions-item label-class-name="detail-box-label" label="目视检查(中文)" v-if="item.type == 2 || item.type == 3"><span>{{ item.eye
                     }}</span></el-descriptions-item>
-            <el-descriptions-item label-class-name="detail-box-label" label="目测检查(英文)" v-if="item.type == 2 || item.type == 3"><span>{{ item.eye_en
+            <el-descriptions-item label-class-name="detail-box-label" label="目视检查(英文)" v-if="item.type == 2 || item.type == 3"><span>{{ item.eye_en
                     }}</span></el-descriptions-item>
             <el-descriptions-item label-class-name="detail-box-label" label="测量下限"><span>{{ item.lower_limit }}</span></el-descriptions-item>
             <el-descriptions-item label-class-name="detail-box-label" label="测量上限"><span>{{ item.upper_limit }}</span></el-descriptions-item>

@@ -24,8 +24,9 @@ let titles = {
 
 let ppt = {
     pres: new PptxGenJS(),
-    init: (t = 'vehicle') => {
+    init: (t = 'vehicle',layout = 'LAYOUT_16x9') => {
         pres = new PptxGenJS()
+        pres.layout = layout
         slide = pres.addSlide()
         type = t
         return ppt

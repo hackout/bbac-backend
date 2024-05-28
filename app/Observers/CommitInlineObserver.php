@@ -2,6 +2,8 @@
 
 namespace App\Observers;
 
+use DB;
+use Str;
 use App\Models\CommitInline;
 use App\Services\Private\CommitInlineItemService;
 
@@ -14,6 +16,8 @@ class CommitInlineObserver
     {
         if ($commitInline->parent_id) {
             (new CommitInlineItemService)->copyItem($commitInline);
+        }else{
+            DB::table($commitInline->getTable())->where('id',$commitInline->id)->update(['unique_id' => Str::uuid()]);
         }
     }
 

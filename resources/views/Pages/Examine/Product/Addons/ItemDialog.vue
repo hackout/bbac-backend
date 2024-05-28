@@ -40,13 +40,13 @@
                     </el-form-item>
                 </el-col>
                 <el-col v-if="form.type != 1" :span="12">
-                    <el-form-item label="目测检查" prop="eye">
-                        <el-input type="textarea" v-model="form.eye" placeholder="请输入目测检查" clearable></el-input>
+                    <el-form-item label="目视检查" prop="eye">
+                        <el-input type="textarea" v-model="form.eye" placeholder="请输入目视检查" clearable></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col v-if="form.type != 1" :span="12">
-                    <el-form-item label="目测检查(英文)" prop="eye_en">
-                        <el-input type="textarea" v-model="form.eye_en" placeholder="请输入目测检查(英文)" clearable></el-input>
+                    <el-form-item label="目视检查(英文)" prop="eye_en">
+                        <el-input type="textarea" v-model="form.eye_en" placeholder="请输入目视检查(英文)" clearable></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col :span="8">

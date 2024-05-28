@@ -88,11 +88,19 @@ class ReportController extends Controller
      * @param  Request         $request
      * @return InertiaResponse
      */
-    public function productDaily(Request $request): InertiaResponse
+    public function productDaily(Request $request, DictService $dictService): InertiaResponse
     {
-        $now = Carbon::now();
+        $date = $request->get('date', (Carbon::now())->toDateString());
         return Inertia::render('Report/Product/Daily', [
-            'date' => $now->toDateString()
+            'date' => $date,
+            'report' => fn() => (new ReportService)->getProductDaily($date),
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'eb_type' => $dictService->getOptionByCode('eb_type'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'purpose' => $dictService->getOptionByCode('purpose'),
+            'assembly_line' => $dictService->getOptionByCode('assembly_line'),
+            'issue_status' => $dictService->getOptionByCode('issue_status')
         ]);
     }
 

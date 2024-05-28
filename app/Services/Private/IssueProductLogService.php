@@ -79,7 +79,7 @@ class IssueProductLogService extends Service
     public function addLogByUpdated(IssueProduct $issueProduct)
     {
         $sql = [
-            'issue_vehicle_id' => $issueProduct->id,
+            'issue_product_id' => $issueProduct->id,
             'user_id' => $issueProduct->user_id,
             'code' => 'updated',
             'extra' => [],

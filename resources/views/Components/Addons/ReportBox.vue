@@ -1,5 +1,5 @@
 <template>
-    <div class="report">
+    <div class="report" :style="{height:height,width:width}">
         <ReportTitle v-if="reportTitle" :title="reportTitle" :mode="reportMode"></ReportTitle>
         <div class="report-box" :style="{flexDirection:flexDirection}">
             <slot></slot>
@@ -27,6 +27,14 @@ export default {
         footer: {
             type:String,
             default: null
+        },
+        width: {
+            type:String,
+            default: '1580px'
+        },
+        height: {
+            type:String,
+            default: '689px'
         },
         direction: {
             type: String,
@@ -66,7 +74,7 @@ export default {
     background-color: var(--report-bg);
     border-color: var(--report-border);
     &-box{
-        height: 589px;
+        height: calc(100% - 100px);
         width: 100%;
         display: flex;
         flex-direction: column;

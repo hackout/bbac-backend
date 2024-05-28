@@ -350,9 +350,7 @@ class TaskService extends Service
         {
             throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
         }
-        $templateData = (new ExcelReader($file));
         return [
-            'template' => $templateData->readData(),
             'id' => $item->id,
             'engine' => $item->engine,
             'user_id' => $item->user_id,
@@ -416,30 +414,55 @@ class TaskService extends Service
             throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
         }
         $templateData = (new ExcelReader($file));
-        return [
-            'template' => $templateData->readData($item,$templateName),
-            'id' => $item->id,
-            'engine' => $item->engine,
-            'user_id' => $item->user_id,
-            'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
-            'assembly_id' => $item->assembly_id,
-            'assembly' => optional($item->assembly)->number,
-            'eb_number' => $item->eb_number,
-            'finding' => optional($item->extra)['defect_category'],
-            'level' => optional($item->extra)['defect_level'],
-            'eight' => optional($item->extra)['eight'],
-            'resp' => optional($item->extra)['resp'],
-            'description' => optional($item->extra)['description'],
-            'next' => optional($item->extra)['next'],
-            'purpose' => optional($item->extra)['purpose'],
-            'plant' => $item->plant,
-            'line' => $item->line,
-            'remark' => $item->remark,
-            'created_at' => $item->created_at,
-            'status' => $item->status,
-            'thumbnails' => $item->thumbnails,
-            'items' => $item->items
+        return $templateData->readData($item,$templateName);
+    }
+    /**
+     * 导出产品考核单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return string
+     */
+    public function getProductExport(User $user, string $id): string
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($id);
+        $fileName = [
+            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
         ];
+        $templateName = null;
+        switch ($item->original_examine['type']) {
+            case CommitProduct::TYPE_OVERHAUL:
+                $fileName[] = 'Assembly';
+                $templateName = 'ProductAssemblyReader';
+                break;
+            case CommitProduct::TYPE_ASSEMBLING:
+                $fileName[] = 'Reassembly';
+                $templateName = 'ProductReassemblyReader';
+                break;
+            case CommitProduct::TYPE_DYNAMIC:
+                $fileName[] = 'Dynamic';
+                $templateName = 'ProductDynamicReader';
+                break;
+        }
+        $fileName[] = '.xlsx';
+        $templateFile = implode('',$fileName);
+        $file = resource_path('templates/'.$templateFile);
+        if(!file_exists($file))
+        {
+            throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
+        }
+        $templateData = (new ExcelReader($file));
+        $path = Storage::path('public/exports/');
+        if (!is_dir($path)) {
+            @mkdir($path);
+        }
+        $fileName = 'exports/' . Str::uuid() . '.xlsx';
+        $templateData->writerData($item,$templateName, storage_path('app/public/' . $fileName));
+        return Storage::url($fileName);
     }
 
     public function updateVehicle(User $user, string $id, array $data)

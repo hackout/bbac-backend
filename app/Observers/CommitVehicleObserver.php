@@ -2,6 +2,8 @@
 
 namespace App\Observers;
 
+use DB;
+use Str;
 use App\Models\CommitVehicle;
 use App\Services\Private\CommitVehicleItemService;
 
@@ -14,6 +16,8 @@ class CommitVehicleObserver
     {
         if ($commitVehicle->parent_id) {
             (new CommitVehicleItemService)->copyItem($commitVehicle);
+        } else {
+            DB::table($commitVehicle->getTable())->where('id', $commitVehicle->id)->update(['unique_id' => Str::uuid()]);
         }
     }
 

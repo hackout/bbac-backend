@@ -78,7 +78,7 @@ class IssueInlineLogService extends Service
     public function addLogByUpdated(IssueInline $issueInline)
     {
         $sql = [
-            'issue_vehicle_id' => $issueInline->id,
+            'issue_inline_id' => $issueInline->id,
             'user_id' => $issueInline->user_id,
             'code' => 'updated',
             'extra' => [],

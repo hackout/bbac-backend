@@ -78,7 +78,7 @@ class Service
 
     public string $orderType = 'DESC';
 
-    public ?Model $item;
+    public null|Model $item = null;
 
     public function __construct()
     {
@@ -88,6 +88,16 @@ class Service
             $this->orderKey = $this->model->timestamps ? 'created_at' : $this->primaryKey;
             $this->cacheName = $this->model->getTable();
         }
+    }
+
+    public function getItem()
+    {
+        return $this->item;
+    }
+
+    public function setItem($item)
+    {
+        $this->item = $item;
     }
 
     private function newModel()

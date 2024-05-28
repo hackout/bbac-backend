@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $author_id 提交人ID
  * @property ?string $user_id 用户ID
  * @property ?string $task_id 任务ID
+ * @property ?string $task_item_id 任务ID
  * @property int $plant 工厂
  * @property int $line 产线
  * @property int $engine 机型
@@ -49,6 +50,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read ?User $author 提交人
  * @property-read ?User $user 用户
  * @property-read ?Task $task 任务单
+ * @property-read ?TaskItem $task_item 任务单
  * @property-read ?Assembly $assembly 总成
  * @property-read ?Product $product 发动机
  * @property-read ?Collection<IssueInlineLog> $logs 日志记录
@@ -81,6 +83,7 @@ class IssueInline extends Model implements HasMedia
         'author_id',
         'user_id',
         'task_id',
+        'task_item_id',
         'plant',
         'line',
         'engine',
@@ -170,6 +173,17 @@ class IssueInline extends Model implements HasMedia
     public function task()
     {
         return $this->belongsTo(Task::class);
+    }
+
+    /**
+     * 任务单子项
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return null|BelongsTo<TaskItem>|TaskItem|BelongsTo
+     */
+    public function task_item()
+    {
+        return $this->belongsTo(TaskItem::class);
     }
 
     /**

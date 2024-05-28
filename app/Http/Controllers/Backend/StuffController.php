@@ -179,8 +179,9 @@ class StuffController extends Controller
             'assembly_line' => $dictService->getOptionByCode('assembly_line'),
         ]);
     }
+
     /**
-     * 整车服务-动态考核详情
+     * 产品考核-考核预览
      *
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  string          $id
@@ -214,5 +215,33 @@ class StuffController extends Controller
             'purpose' => $dictService->getOptionByCode('purpose'),
             'assembly_line' => $dictService->getOptionByCode('assembly_line'),
         ]);
+    }
+
+    /**
+     * 产品考核-考核导出
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string          $id
+     * @param  Request         $request
+     * @param  TaskService     $taskService
+     * @return JsonResponse
+     */
+    public function export(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,type,2',
+        ];
+        $messages = [
+            'id.exists' => '考核记录不存在或已删除',
+        ];
+
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return abort(500)->withMessages($validator->errors());
+        }
+        $result = $taskService->getProductExport($request->user(), $id);
+        return $this->success($result);
     }
 }

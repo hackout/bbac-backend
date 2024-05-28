@@ -3,14 +3,17 @@ namespace App\Services\Frontend;
 
 use App\Models\Account;
 use App\Models\ExamineInline;
+use App\Models\Product;
 use App\Models\ExamineProduct;
 use App\Models\ExamineVehicle;
 use App\Models\WorkItem;
 use App\Models\TaskItem;
+use App\Models\IssueProduct;
 use App\Models\Task;
-use App\Models\TrainingUser;
+use App\Models\CommitProduct;
 use App\Models\User;
 use App\Packages\Department\DepartmentRole;
+use App\Packages\Excel\ExcelReader;
 use App\Packages\ImagePlus\ImagePlus;
 use Carbon\Carbon;
 use App\Services\Service;
@@ -426,16 +429,15 @@ class TaskService extends Service
      * @param  User $user
      * @return array
      */
-    public function getListByProductOverhaul(User $user): array
+    public function getProductOverhaulList(User $user): array
     {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
         parent::setQuery([
             ['user_id', '=', $user->id],
-            ['type', '=', Task::TYPE_PRODUCT]
-        ]);
-        parent::setHas([
-            'examine' => function ($query) {
-                $query->where('type', ExamineProduct::TYPE_OVERHAUL);
-            }
+            ['type', '=', Task::TYPE_PRODUCT],
+            ['original_examine->type', '=', ExamineProduct::TYPE_OVERHAUL]
         ]);
         $result = parent::list();
         $now = Carbon::now();
@@ -449,6 +451,7 @@ class TaskService extends Service
                 'end_at' => $item->end_at,
                 'valid_at' => $item->valid_at,
                 'overdue' => optional($item->valid_at)->lt($now) ?? false,
+                'lastTime' => optional($item->valid_at)->diffInSeconds($now, true),
                 'task_status' => $item->task_status,
                 'plant' => $item->plant,
                 'line' => $item->line,
@@ -467,16 +470,12 @@ class TaskService extends Service
      * @param  User $user
      * @return array
      */
-    public function getListByProductAssembling(User $user): array
+    public function getProductAssemblingList(User $user): array
     {
         parent::setQuery([
             ['user_id', '=', $user->id],
-            ['type', '=', Task::TYPE_PRODUCT]
-        ]);
-        parent::setHas([
-            'examine' => function ($query) {
-                $query->where('type', ExamineProduct::TYPE_ASSEMBLING);
-            }
+            ['type', '=', Task::TYPE_PRODUCT],
+            ['original_examine->type', '=', ExamineProduct::TYPE_ASSEMBLING]
         ]);
         $result = parent::list();
         $now = Carbon::now();
@@ -490,6 +489,7 @@ class TaskService extends Service
                 'end_at' => $item->end_at,
                 'valid_at' => $item->valid_at,
                 'overdue' => optional($item->valid_at)->lt($now) ?? false,
+                'lastTime' => optional($item->valid_at)->diffInSeconds($now, true),
                 'task_status' => $item->task_status,
                 'plant' => $item->plant,
                 'line' => $item->line,
@@ -508,16 +508,12 @@ class TaskService extends Service
      * @param  User $user
      * @return array
      */
-    public function getListByProductDynamic(User $user): array
+    public function getProductDynamicList(User $user): array
     {
         parent::setQuery([
             ['user_id', '=', $user->id],
-            ['type', '=', Task::TYPE_PRODUCT]
-        ]);
-        parent::setHas([
-            'examine' => function ($query) {
-                $query->where('type', ExamineProduct::TYPE_DYNAMIC);
-            }
+            ['type', '=', Task::TYPE_PRODUCT],
+            ['original_examine->type', '=', ExamineProduct::TYPE_DYNAMIC]
         ]);
         $result = parent::list();
         $now = Carbon::now();
@@ -531,6 +527,7 @@ class TaskService extends Service
                 'end_at' => $item->end_at,
                 'valid_at' => $item->valid_at,
                 'overdue' => optional($item->valid_at)->lt($now) ?? false,
+                'lastTime' => optional($item->valid_at)->diffInSeconds($now, true),
                 'task_status' => $item->task_status,
                 'plant' => $item->plant,
                 'line' => $item->line,
@@ -548,13 +545,86 @@ class TaskService extends Service
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  User  $user
      * @param  array $data
-     * @return array
+     * @return void
+     * 
+     * @throws ValidationException
      */
-    public function getProductEnter(User $user, array $data): array
+    public function getProductEnter(User $user, array $data): void
     {
-        $product = (new ProductService)->find(['number' => $data['number']]);
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($data['id']);
+        $assemblyService = new AssemblyService();
+        $productService = new ProductService();
+        $product = $productService->find(['number' => $data['number']]);
+        if (!$product) {
+            list($assemblyNumber) = array_pad(explode(" ", $data['number']), 2, null);
+            $assembly = $assemblyService->find(['number' => $assemblyNumber]);
+            if (!$assembly) {
+                $assemblySql = [
+                    'type' => $item->engine,
+                    'plant' => $item->plant,
+                    'line' => $item->line,
+                    'status' => 1,
+                    'number' => $assemblyNumber,
+                    'remark' => '',
+                ];
+                if ($assemblyService->create($assemblySql)) {
+                    $assembly = $assemblyService->item;
+                } else {
+                    throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+                }
+            }
+            $insertSql = [
+                'line' => $assembly->line,
+                'plant' => $assembly->plant,
+                'engine' => $assembly->type,
+                'status' => $assembly->status,
+                'assembly_id' => $assembly->id,
+                'number' => $data['number'],
+                'beginning_at' => Carbon::now(),
+                'examine_at' => null,
+                'qc_at' => null,
+                'assembled_at' => null,
+            ];
+            if ($productService->create($insertSql)) {
+                $product = $productService->item;
+            } else {
+                throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+            }
+        }
+        if ($item->eb_number && $item->eb_number != $data['number']) {
+            throw ValidationException::withMessages(['permission' => '当前考核提供的发动机号不正确']);
+        }
+        if (!$item->eb_number) {
+            $item->fill(['eb_number' => $data['number']]);
+            $item->save();
+            $this->clearCacheData();
+        }
+    }
 
-        return [];
+    /**
+     * 确定提交订单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User  $user
+     * @param  string $id
+     * @return void
+     * 
+     * @throws ValidationException
+     */
+    public function saveProduct(User $user, string $id): void
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $sql = [
+            'end_at' => Carbon::now(),
+            'status' => Task::STATUS_COMPLETED,
+            'task_status' => Task::STATUS_COMPLETED
+        ];
+        parent::update($id,$sql);
     }
 
     /**
@@ -666,28 +736,79 @@ class TaskService extends Service
      */
     public function productDetail(User $user, string $id): array
     {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
         $task = parent::find([
             'user_id' => $user->id,
             'id' => $id
         ]);
         $process = 0;
-        $items = $task->items->map(function ($item) use (&$process) {
-            if (!empty ($item->content)) {
-                $process += $item->extra['process'];
+        $items = $task->items->map(function (TaskItem $item) use (&$process, &$isFull) {
+            $defaultContent = [
+                'status' => null,
+                'process' => 0,
+                'value' => null,
+                'issue_id' => null,
+                'finished' => false,
+                'defect_level' => '',
+                'defect_description' => '',
+                'defect_part' => '',
+                'defect_position' => '',
+                'defect_cause' => '',
+                'part_number' => '',
+                'file' => []
+            ];
+            if (!$item->extra['number'] || $item->extra['number'] < 2) {
+                $defaultContent['value'] = '';
+            } else {
+                $defaultContent['value'] = array_pad([], $item->extra['number'], '');
             }
-            $thumbnails = [];
-            foreach ($item->getMedia(TaskItem::MEDIA_FILE) as $media) {
-                $thumbnails[] = $media->getUrl();
+            $content = array_merge($defaultContent,json_decode($item->content, true) ?? []);
+            if ($content && array_key_exists('process', $content)) {
+                $process += floatval($content['process']);
+            }
+            if ($content && array_key_exists('file', $content) && $content['file']) {
+                foreach ($content['file'] as $fileIndex => $file) {
+                    $content['file'][$fileIndex] = url($file);
+                }
             }
             return [
                 'id' => $item->id,
-                'content' => $item->content,
-                'sort_order' => $item->sort_order,
                 'remark' => $item->remark,
-                'extra' => $item->extra,
-                'thumbnails' => $thumbnails
+                'sort_order' => $item->sort_order,
+                'content' => $content,
+                'thumbnails' => $item->thumbnails,
+                'files' => $item->files,
+                'extra' => collect($item->extra)->only([
+                    'eye',
+                    'name',
+                    'scan',
+                    'type',
+                    'unit',
+                    'is_ds',
+                    'camera',
+                    'eye_en',
+                    'number',
+                    'record',
+                    'torque',
+                    'content',
+                    'is_scan',
+                    'name_en',
+                    'options',
+                    'part_id',
+                    'process',
+                    'standard',
+                    'is_camera',
+                    'content_en',
+                    'sort_order',
+                    'lower_limit',
+                    'standard_en',
+                    'upper_limit',
+                ])->toArray()
             ];
         });
+        $product = Product::where('number', $task->eb_number ?? '')->first();
         $result = [
             'id' => $task->id,
             'number' => $task->number,
@@ -696,12 +817,313 @@ class TaskService extends Service
             'line' => $task->line,
             'engine' => $task->engine,
             'status' => $task->status,
+            'stage' => optional($product)->status,
+            'eb_number' => $task->eb_number,
+            'assembled_at' => optional($product)->assembled_at,
+            'qc_at' => optional($product)->qc_at,
             'assembly' => optional($task->assembly)->number,
             'progress' => $process,
+            'start_at' => $task->start_at,
+            'end_at' => $task->end_at,
+            'valid_at' => $task->valid_at,
+            'is_full' => $items->filter(fn($item) => array_key_exists('finished', $item['content']) && $item['content']['finished'])->count() == $items->count(),
+            'examine_type' => $task->original_examine['type'],
+            'order_sort' => $task->extra && array_key_exists('order_sort', $task->extra) ? $task->extra['order_sort'] : 0,
             'items' => $items
         ];
-
         return $result;
+    }
+
+    private function getPathDetail(string $id):array
+    {
+        $item = (new TaskItemService())->findById($id);
+        $defaultContent = [
+            'status' => null,
+            'process' => 0,
+            'value' => null,
+            'issue_id' => null,
+            'finished' => false,
+            'defect_level' => '',
+            'defect_description' => '',
+            'defect_part' => '',
+            'defect_position' => '',
+            'defect_cause' => '',
+            'part_number' => '',
+            'file' => []
+        ];
+        if (!$item->extra['number'] || $item->extra['number'] < 2) {
+            $defaultContent['value'] = '';
+        } else {
+            $defaultContent['value'] = array_pad([], $item->extra['number'], '');
+        }
+        $content = array_merge($defaultContent,json_decode($item->content, true));
+        if ($content && array_key_exists('file', $content) && $content['file']) {
+            foreach ($content['file'] as $fileIndex => $file) {
+                $content['file'][$fileIndex] = url($file);
+            }
+        }
+        return [
+            'id' => $item->id,
+            'remark' => $item->remark,
+            'sort_order' => $item->sort_order,
+            'content' => $content,
+            'thumbnails' => $item->thumbnails,
+            'files' => $item->files,
+            'extra' => collect($item->extra)->only([
+                'eye',
+                'name',
+                'scan',
+                'type',
+                'unit',
+                'is_ds',
+                'camera',
+                'eye_en',
+                'number',
+                'record',
+                'torque',
+                'content',
+                'is_scan',
+                'name_en',
+                'options',
+                'part_id',
+                'process',
+                'standard',
+                'is_camera',
+                'content_en',
+                'sort_order',
+                'lower_limit',
+                'standard_en',
+                'upper_limit',
+            ])->toArray()
+        ];
+    }
+
+    public function productPartUpdate(User $user, string $id, array $data): array
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $items = $this->productFullPart($user, $id);
+        $item = $this->getItem();
+        $taskItem = $items[$data['order']];
+        $product = (new ProductService)->find(['number' => $item->eb_number]);
+        $process = $taskItem['extra']['process'];
+        if ($taskItem['extra']['is_scan']) {
+            if (array_key_exists('part_number', $data)) {
+                $part = (new PartService)->findById($taskItem['extra']['part_id']);
+                if (strpos($data['part_number'], $part->number) === false) {
+                    throw ValidationException::withMessages(['permission' => '扫描零件错误']);
+                }
+                if (!$part->items->where('number', $data['part_number'])->first()) {
+                    (new PartItemService)->createByPart($part->id, $item->assembly_id, $user->id, optional($product)->id, $data['part_number']);
+                }
+            }
+        }
+        if ($taskItem['extra']['is_camera']) {
+            if (!array_key_exists('images', $data) || !$data['images']) {
+                throw ValidationException::withMessages(['permission' => '拍照记录错误']);
+            }
+        }
+        $isOk = $data['status'] == 1;
+        if (!$isOk) {
+            $sql = [
+                'author_id' => $user->id,
+                'user_id' => $user->id,
+                'task_id' => $item->id,
+                'plant' => $item->plant,
+                'line' => $item->line,
+                'engine' => $item->engine,
+                'stage' => $item->status,
+                'assembly_id' => $item->assembly_id,
+                'product_id' => Product::where('number', $item->eb_number)->value('id'),
+                'part_id' => $taskItem['extra']['part_id'],
+                'defect_description' => intval($data['defect_description']),
+                'defect_level' => intval($data['defect_level']),
+                'defect_part' => intval($data['defect_part']),
+                'defect_position' => intval($data['defect_position']),
+                'defect_cause' => intval($data['defect_cause']),
+                'note' => trim($data['remark']),
+                'type' => $item->original_examine['type'],
+                'is_ok' => false
+            ];
+            $issue_id = (new IssueProductService())->createProduct($taskItem['id'],$sql, array_key_exists('images',$data) ? $data['images'] : []);
+            $itemSql = [
+                'content' => [
+                    'status' => $isOk,
+                    'process' => $process,
+                    'issue_id' => $issue_id,
+                    'finished' => true,
+                    'value' => $data['value'],
+                    'defect_level' => $data['defect_level'],
+                    'defect_description' => $data['defect_description'],
+                    'defect_part' => $data['defect_part'],
+                    'defect_position' => $data['defect_position'],
+                    'defect_cause' => $data['defect_cause'],
+                    'part_number' => $data['part_number'],
+                    'file' => array_key_exists('files',$data) && is_array($data['files']) && $data['files'] ? $data['files'] : []
+                ],
+                'remark' => $data['remark']
+            ];
+        } else {
+            $itemSql = [
+                'content' => [
+                    'status' => $isOk,
+                    'process' => $process,
+                    'issue_id' => null,
+                    'finished' => true,
+                    'value' => $data['value'],
+                    'defect_level' => null,
+                    'defect_description' => null,
+                    'defect_part' => null,
+                    'defect_position' => null,
+                    'defect_cause' => null,
+                    'part_number' => $data['part_number'],
+                    'file' => array_key_exists('files',$data) && is_array($data['files']) && $data['files'] ? $data['files'] : []
+                ],
+                'remark' => $data['remark']
+            ];
+        }
+        (new TaskItemService())->createProduct($taskItem['id'], $itemSql,array_key_exists('images',$data) ? $data['images'] : []);
+        $sql = array_merge([
+            'order_sort' => 0,
+            'value' => array_pad([], $item->items->count(), ''),
+            'progress' => 0
+        ], $item->extra ?? []);
+        $sql['value'][$data['order']] = $isOk;
+        $sql['progress'] += $process;
+        $isFull = true;
+        if ($data['order'] < $item->items->count() - 1 && $sql['order_sort'] < $item->items->count() - 1) {
+            $isFull = false;
+            $sql['order_sort']++;
+        }
+        parent::update($item->id, ['extra'=>$sql]);
+        return [
+            'item' => $this->getPathDetail($taskItem['id']),
+            'process' => $sql['progress'],
+            'order_sort' => $sql['order_sort'],
+            'is_full' => $isFull
+        ];
+    }
+
+    /**
+     * 获取详情-产品考核
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return array
+     */
+    public function productPart(User $user, string $id, int $order): array
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        if (!$item = $this->getItem()) {
+            $this->setItem(parent::find([
+                'user_id' => $user->id,
+                'id' => $id
+            ]));
+            $item = $this->getItem();
+        }
+        $taskItem = $item->items->get($order);
+        return $taskItem->toArray();
+    }
+
+    /**
+     * 获取详情-产品考核
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return array
+     */
+    public function productFullPart(User $user, string $id): array
+    {
+        parent::setItem(parent::find([
+            'user_id' => $user->id,
+            'id' => $id
+        ]));
+        $item = $this->getItem();
+        $result = [];
+        for ($i = 0; $i < $item->items->count(); $i++) {
+            $result[] = $this->productPart($user, $id, $i);
+        }
+        return $result;
+    }
+
+    /**
+     * 获取详情-产品考核
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  array $data
+     * @return void
+     */
+    public function productStart(User $user, array $data): void
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $task = parent::find([
+            'user_id' => $user->id,
+            'id' => $data['id']
+        ]);
+        if (!$task->start_at || $task->task_status == WorkItem::STATUS_PENDING) {
+            $now = Carbon::now();
+            $sql = [
+                'start_at' => $now,
+                'valid_at' => $now->clone()->addHours($task->period),
+                'status' => Task::STATUS_PROCESSING,
+                'task_status' => Task::STATUS_PROCESSING
+            ];
+            $task->fill($sql);
+            if ($task->save()) {
+                $product = Product::where('number', $task->eb_number)->first();
+                if ($product) {
+                    $product->fill([
+                        'qc_at' => $data['qc_at'],
+                        'assembled_at' => $data['assembled_at']
+                    ]);
+                    $product->save();
+                }
+            }
+            $this->clearCache();
+        }
+    }
+
+    public function productPreview(User $user,string $id)
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        $item = parent::findById($id);
+        $fileName = [
+            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
+        ];
+        $templateName = null;
+        switch ($item->original_examine['type']) {
+            case CommitProduct::TYPE_OVERHAUL:
+                $fileName[] = 'Assembly';
+                $templateName = 'ProductAssemblyReader';
+                break;
+            case CommitProduct::TYPE_ASSEMBLING:
+                $fileName[] = 'Reassembly';
+                $templateName = 'ProductReassemblyReader';
+                break;
+            case CommitProduct::TYPE_DYNAMIC:
+                $fileName[] = 'Dynamic';
+                $templateName = 'ProductDynamicReader';
+                break;
+        }
+        $fileName[] = '.xlsx';
+        $templateFile = implode('',$fileName);
+        $file = resource_path('templates/'.$templateFile);
+        if(!file_exists($file))
+        {
+            throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
+        }
+        $templateData = (new ExcelReader($file));
+        return $templateData->readData($item,$templateName);
     }
 
     /**

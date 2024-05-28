@@ -193,6 +193,7 @@ td,th{
     --el-report-block-icon: #fee192;
     --el-report-main: #335CA1;
     --el-report-light: #e2e4e9;
+    --el-report-purple: #7030a0;
 }
 
 .page-block {
@@ -502,23 +503,56 @@ svg {
     margin-right: 10px;
     background-color: var(--el-color-success);
 }
+.report-status-point.square{
+    border-radius: 2px;
+}
 .report-status-point.border{
     border: var(--el-color-black) 1px solid;
 }
 .report-status-point.preHighlight{
     background-color: var(--el-color-warning);
 }
+.report-status-point.danger{
+    background-color: var(--el-color-danger);
+}
+.report-status-point.warning{
+    background-color: var(--el-color-warning);
+}
 .report-status-point.highlight{
     background-color: var(--el-color-danger);
 }
+.report-status-point.purple{
+    background-color: var(--el-report-purple);
+}
+.report-status-point.primary{
+    background-color: var(--el-report-main);
+}
+.report-status-point.light{
+    background-color: var(--el-color-primary);
+}
 .report-status-text{
     color: var(--el-color-success);
+}
+.report-status-text.danger{
+    background-color: var(--el-color-danger);
+}
+.report-status-text.warning{
+    background-color: var(--el-color-warning);
 }
 .report-status-text.preHighlight{
     color: var(--el-color-warning);
 }
 .report-status-text.highlight{
     color: var(--el-color-danger);
+}
+.report-status-text.purple{
+    color: var(--el-report-purple);
+}
+.report-status-text.primary{
+    color: var(--el-report-main);
+}
+.report-status-text.light{
+    color: var(--el-color-primary);
 }
 
 ins.el-text{

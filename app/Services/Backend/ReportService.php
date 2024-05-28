@@ -4,6 +4,10 @@ namespace App\Services\Backend;
 use App\Imports\CommitImportSheet;
 use App\Imports\CommitVehicleImport;
 use App\Models\IssueVehicle;
+use App\Models\Task;
+use App\Models\IssueProduct;
+use App\Models\ExamineProduct;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\Commit;
 use App\Models\CommitVehicle;
@@ -242,100 +246,100 @@ class ReportService
             $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
             $result = [
                 'name' => $eb_type['name'],
-                'w' => rand(1,399),
-                'y' => rand(1,399),
-                'm' => rand(1,399),
-                'ay4' => rand(1,399),
-                'ax4' => rand(1,399),
-                'bb4' => rand(1,399),
-                'ar4' => rand(1,399),
+                'w' => rand(1, 399),
+                'y' => rand(1, 399),
+                'm' => rand(1, 399),
+                'ay4' => rand(1, 399),
+                'ax4' => rand(1, 399),
+                'bb4' => rand(1, 399),
+                'ar4' => rand(1, 399),
                 'cwList' => [
                     [
                         'name' => 'CW1',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW2',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW3',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW4',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW5',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW6',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW7',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW8',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW9',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW10',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW11',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW12',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW13',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW14',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW15',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW16',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ]
                 ],
                 'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
                     return [
                         'value' => $item['value'],
                         'name' => $item['name'],
-                        'count' => rand(1,399)// $issues->where('cause_type', $item['value'])->count()
+                        'count' => rand(1, 399)// $issues->where('cause_type', $item['value'])->count()
                     ];
                 })->filter(fn($n) => $n['count'])->values(),
                 'eight' => IssueVehicle::where('created_at', '>=', $startDay)
@@ -357,7 +361,7 @@ class ReportService
     }
     public function getVehicleMonthly(string $date)
     {
-        $startDay = Carbon::parse($date.'-01');
+        $startDay = Carbon::parse($date . '-01');
         $endDay = $startDay->clone()->endOfWeek();
         $ebTypeList = (new DictService)->getOptionByCode('eb_type');
         $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
@@ -365,100 +369,100 @@ class ReportService
             $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
             $result = [
                 'name' => $eb_type['name'],
-                'w' => rand(1,399),
-                'y' => rand(1,399),
-                'm' => rand(1,399),
-                'ay4' => rand(1,399),
-                'ax4' => rand(1,399),
-                'bb4' => rand(1,399),
-                'ar4' => rand(1,399),
+                'w' => rand(1, 399),
+                'y' => rand(1, 399),
+                'm' => rand(1, 399),
+                'ay4' => rand(1, 399),
+                'ax4' => rand(1, 399),
+                'bb4' => rand(1, 399),
+                'ar4' => rand(1, 399),
                 'cwList' => [
                     [
                         'name' => 'CW1',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW2',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW3',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW4',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW5',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW6',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW7',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW8',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW9',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW10',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW11',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW12',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW13',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW14',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW15',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ],
                     [
                         'name' => 'CW16',
-                        'count' => rand(1,399),
-                        'sum' => rand(1,399)
+                        'count' => rand(1, 399),
+                        'sum' => rand(1, 399)
                     ]
                 ],
                 'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
                     return [
                         'value' => $item['value'],
                         'name' => $item['name'],
-                        'count' => rand(1,399)// $issues->where('cause_type', $item['value'])->count()
+                        'count' => rand(1, 399)// $issues->where('cause_type', $item['value'])->count()
                     ];
                 })->filter(fn($n) => $n['count'])->values(),
                 'eight' => IssueVehicle::where('created_at', '>=', $startDay)
@@ -477,5 +481,140 @@ class ReportService
             ];
             return $result;
         });
+    }
+
+
+
+    public function getProductDaily(string $date)
+    {
+        $engines = (new DictService)->getOptionByCode('eb_type');
+        $date = Carbon::parse($date);
+        $month = $date->clone()->subMonth();
+        $todaySql = [
+            ['created_at', '>=', $date],
+            ['created_at', '<', $date->clone()->addDay()]
+        ];
+        $ebNumbers = Task::where($todaySql)->where('type', Task::TYPE_PRODUCT)->select('eb_number')->skip(0)->take(5)->get()->pluck('eb_number')->toArray();
+        $overviews = $trends = [];
+        foreach ($ebNumbers as $eb_number) {
+            $product = Product::where('number', $eb_number)->first();
+            $audit = Task::where('eb_number', $eb_number)->where('original_examine->type', ExamineProduct::TYPE_OVERHAUL)->orderBy('created_at', 'DESC')->first();
+            $assembly = Task::where('eb_number', $eb_number)->where('original_examine->type', ExamineProduct::TYPE_ASSEMBLING)->orderBy('created_at', 'DESC')->first();
+            $overviews[] = [
+                'number' => $product->number,
+                'audit_progress' => $audit && $audit->extra ? $audit->extra['progress'] : 0,
+                'assembly_progress' => $assembly && $assembly->extra ? $assembly->extra['progress'] : 0,
+                'status' => IssueProduct::where('product_id', $product->id)->value('status') ?? 0,
+                'defect_level' => IssueProduct::where('product_id', $product->id)->value('defect_level') ?? 0,
+                'description' => IssueProduct::where('product_id', $product->id)->value('defect_category') ?? 0,
+                'is_ok' => IssueProduct::where('product_id', $product->id)->value('is_ok') ?? false,
+            ];
+        }
+        $overviews[] = [
+            'number' => 'xxxxxxxxx  skadlskadnas0000',
+            'audit_progress' => 0,
+            'assembly_progress' => 30,
+            'status' => 1,
+            'defect_level' => 1,
+            'description' => 2,
+            'is_ok' => true,
+        ];
+        $overviews[] = [
+            'number' => 'xxxxxxxxx  skadlskadnas0000',
+            'audit_progress' => 0,
+            'assembly_progress' => 30,
+            'status' => 1,
+            'defect_level' => 1,
+            'description' => 2,
+            'is_ok' => false,
+        ];
+        $sql = [
+            ['created_at', '>=', $month],
+            ['created_at', '<', $date->clone()->addDay()],
+            ['type', '=', Task::TYPE_PRODUCT]
+        ];
+        $trendList = Task::where($sql)->select('engine', 'extra', 'created_at', 'assembly_id')->get();
+        $engines->each(function ($engine) use (&$trends, $trendList, $month, $date) {
+            $array = [];
+            $score = 0;
+            for ($i = 0; $i < intval($date->diffInDays($month)); $i++) {
+                $_score = 0;
+                $today = $i ? $month->clone()->addDays($i) : $month;
+                $trendList->filter(function ($item) use ($today, $engine) {
+                    return !intval($item->created_at->diffInDays($today)) && $item->engine == $engine['value'];
+                })->values()->each(function ($item) use (&$_score) {
+                    if ($item->extra && array_key_exists('score', $item->extra)) {
+                        $_score += $item->extra['score'];
+                    }
+                });
+                $array[] = $_score;
+                $score += $_score;
+            }
+            if($array)
+            {
+                $trends[] = [
+                    'engine' => $engine['name'],
+                    'trend' => $array,
+                    'score' => $score
+                ];
+            }
+        });
+        $assemblyList = $trendList->pluck('assembly_id')->toArray();
+        $issueOverviews = [];
+        $issues = IssueProduct::where($todaySql)->whereIn('assembly_id', $assemblyList)->get()->filter(fn($item) => !empty(optional($item->assembly)->number))->values()->map(function (IssueProduct $item) use (&$issueOverviews) {
+            $assembly = $item->assembly->number;
+            if ($item->task->original_examine['type'] != ExamineProduct::TYPE_DYNAMIC) {
+                if (!array_key_exists($assembly, $issueOverviews)) {
+                    $issueOverviews[$assembly] = [
+                        'number' => $item->assembly->number,
+                        'assembly' => [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                        'audit' => [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                        'status' => 0,
+                        'categories' => []
+                    ];
+                }
+                $type = $item->task->original_examine['type'] == ExamineProduct::TYPE_OVERHAUL ? 'audit' : 'assembly';
+                if (in_array($item->assembly->status, [2, 3, 4])) {
+                    $issueOverviews[$assembly][$type][$item->assembly->status - 2]++;
+                }
+                $issueOverviews[$assembly]['status'] = $item->status;
+                $issueOverviews[$assembly]['categories'][] = [
+                    'defect_description' => $item->defect_description,
+                    'defect_level' => $item->defect_level,
+                    'thumbnail' => $item->defect_attaches ? $item->defect_attaches[0] : null
+                ];
+            }
+            return [
+                'id' => $item->id,
+                'assembly' => $assembly,
+                'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
+                'line' => $item->line,
+                'engine' => $item->engine,
+                'number' => optional($item->task)->eb_number,
+                'purpose' => optional(optional($item->task)->extra)['purpose'],
+                'defect_description' => $item->defect_description,
+                'defect_level' => $item->defect_level,
+                'defect_part' => $item->defect_part,
+                'defect_position' => $item->defect_position,
+                'defect_cause' => $item->defect_cause,
+                'soma' => $item->soma,
+                'lama' => $item->lama,
+                'note' => $item->note,
+                'eight_disciplines' => $item->eight_disciplines,
+                'created_at' => $item->created_at,
+                'ira' => $item->ira,
+                'next' => $item->lama,
+                'thumbnails' => $item->defect_attaches
+            ];
+        });
+
+
+        $result = collect([
+            'overviews' => $overviews,
+            'trends' => $trends,
+            'items' => $issueOverviews,
+            'issues' => $issues
+        ]);
+        return $result;
     }
 }

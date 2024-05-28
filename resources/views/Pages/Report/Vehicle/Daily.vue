@@ -431,7 +431,7 @@ export default {
             let valueStyle = { text: '-', options: { valign: 'middle', border: { type: 'solid', pt: '1', color: '27406A' }, color: '27406A', w: '5%', h: 0.2, align: 'center', fontSize: '7' } };
             pres.title("Engine & Battery Q-Loop4 Issue Daily Report")
             let x = 0, y = 0.6299213;
-            let target, ytd, mtd, rows = [];
+            let rows = [];
             this.report.factories.forEach(n => {
                 ppt.item(n.name,
                     {

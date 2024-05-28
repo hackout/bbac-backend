@@ -127,7 +127,7 @@ class TaskController extends Controller
      */
     public function productOverhaul(Request $request, TaskService $taskService): JsonResponse
     {
-        $result = $taskService->getListByProductOverhaul($request->user());
+        $result = $taskService->getProductOverhaulList($request->user());
         return $this->success($result);
     }
 
@@ -141,7 +141,7 @@ class TaskController extends Controller
      */
     public function productAssembling(Request $request, TaskService $taskService): JsonResponse
     {
-        $result = $taskService->getListByProductAssembling($request->user());
+        $result = $taskService->getProductAssemblingList($request->user());
         return $this->success($result);
     }
 
@@ -155,7 +155,7 @@ class TaskController extends Controller
      */
     public function productDynamic(Request $request, TaskService $taskService): JsonResponse
     {
-        $result = $taskService->getListByProductDynamic($request->user());
+        $result = $taskService->getProductDynamicList($request->user());
         return $this->success($result);
     }
 
@@ -170,19 +170,51 @@ class TaskController extends Controller
     public function productEnter(Request $request, TaskService $taskService): JsonResponse
     {
         $rules = [
-            'number' => 'required|exists:products,number',
+            'number' => 'required',
+            'id' => 'required|exists:tasks,id,type,2'
         ];
 
         $messages = [
             'number.required' => __('task.product.number.required'),
-            'number.exists' => __('task.product.number.exists'),
+            'id.required' => __('task.product.id.required'),
+            'id.exists' => __('task.product.id.exists'),
         ];
 
         $data = $request->validate($rules, $messages);
 
-        $result = $taskService->getProductEnter($request->user(), $data);
+        $taskService->getProductEnter($request->user(), $data);
 
-        return $this->success($result);
+        return $this->success();
+    }
+
+    /**
+     * 提交保存
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $id
+     * @param  Request      $request
+     * @param  TaskService  $taskService
+     * @return JsonResponse
+     */
+    public function productSubmit(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id
+        ];
+        $messages = [
+            'id.exists' => __('task.id_exists')
+        ];
+        $validator = Validator::make([
+            'id' => $id
+        ], $rules, $messages);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+        
+        $taskService->saveProduct($request->user(), $id);
+
+        return $this->success();
     }
 
     /**
@@ -340,10 +372,10 @@ class TaskController extends Controller
     public function productDetail(string $id, Request $request, TaskService $taskService): JsonResponse
     {
         $rules = [
-            'id' => 'exists_plus:tasks,id,' . $request->user()->id . ',user_id'
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id
         ];
         $messages = [
-            'id.exists_plus' => __('task.product.detail.id.exists_plus')
+            'id.exists' => __('task.product.detail.id.exists')
         ];
         $validator = Validator::make([
             'id' => $id
@@ -354,6 +386,122 @@ class TaskController extends Controller
         }
 
         $result = $taskService->productDetail($request->user(), $id);
+
+        return $this->success($result);
+
+    }
+
+    public function productPart(string $id, int $order, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id,
+            'order' => 'integer',
+            'status' => 'required|boolean',
+            'defect_level' => 'sometimes|nullable|integer',
+            'defect_description' => 'sometimes|nullable|integer',
+            'defect_part' => 'sometimes|nullable|integer',
+            'defect_position' => 'sometimes|nullable|integer',
+            'defect_cause' => 'sometimes|nullable|integer',
+            'value' => 'sometimes|nullable|array',
+            'part_number' => 'sometimes|nullable',
+            'files' => 'sometimes|nullable|array',
+            'remark' => 'sometimes|nullable',
+            'images' => 'sometimes|nullable|array',
+            'images.*' => 'image',
+        ];
+        $messages = [
+            'id.exists' => __('task.product.update.id.exists'),
+            'order.integer' => __('task.product.update.order.integer'),
+            'defect_level.integer' => __('task.product.update.defect_level.integer'),
+            'defect_description.integer' => __('task.product.update.defect_description.integer'),
+            'defect_part.integer' => __('task.product.update.defect_part.integer'),
+            'defect_position.integer' => __('task.product.update.defect_position.integer'),
+            'defect_cause.integer' => __('task.product.update.defect_cause.integer'),
+            'value.array' => __('task.product.update.value.array'),
+            'files.array' => __('task.product.update.files.array'),
+            'images.array' => __('task.product.update.images.array'),
+            'images.*.image' => __('task.product.update.images.*.image'),
+        ];
+        $post = $request->all();
+        if (is_string($post['value'])) {
+            $post['value'] = explode(',', $post['value']);
+        }
+        $validator = Validator::make(array_merge([
+            'id' => $id,
+            'order' => $order
+        ], $post), $rules, $messages);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+        $data = $validator->safe()->only([
+            'order',
+            'status',
+            'defect_level',
+            'defect_description',
+            'defect_part',
+            'defect_position',
+            'defect_cause',
+            'value',
+            'part_number',
+            'files',
+            'images',
+            'remark'
+        ]);
+        $result = $taskService->productPartUpdate($request->user(), $id, $data);
+
+        return $this->success($result);
+
+    }
+
+    public function productStart(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id,
+            'assembled_at' => 'required|date',
+            'qc_at' => 'required|date'
+        ];
+        $messages = [
+            'id.exists' => __('task.product.detail.id.exists'),
+            'assembled_at.required' => __('task.product.detail.assembled_at.required'),
+            'qc_at.required' => __('task.product.detail.qc_at.required'),
+            'assembled_at.date' => __('task.product.detail.assembled_at.date'),
+            'qc_at.date' => __('task.product.detail.qc_at.date'),
+        ];
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->post()), $rules, $messages);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+        $data = $validator->safe()->only([
+            'id',
+            'assembled_at',
+            'qc_at'
+        ]);
+        $taskService->productStart($request->user(), $data);
+
+        return $this->success();
+
+    }
+
+    public function productPreview(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id
+        ];
+        $messages = [
+            'id.exists' => __('task.product.detail.id.exists'),
+        ];
+        $validator = Validator::make([
+            'id' => $id
+        ], $rules, $messages);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first());
+        }
+        $result = $taskService->productPreview($request->user(), $id);
 
         return $this->success($result);
 
@@ -373,7 +521,7 @@ class TaskController extends Controller
     public function productUpdate(string $id, Request $request, TaskService $taskService): JsonResponse
     {
         $rules = [
-            'id' => 'exists_plus:tasks,id,' . $request->user()->id . ',user_id',
+            'id' => 'exists:tasks,id,user_id,' . $request->user()->id,
             'item_id' => 'required|exists_plus:task_items,id,' . $id . ',task_id',
             'content' => 'required|in:0,1',
             'remark' => 'sometimes|nullable|max:200',
@@ -389,7 +537,7 @@ class TaskController extends Controller
             'picture.*' => 'image',
         ];
         $messages = [
-            'id.exists_plus' => __('task.product.update.id.exists_plus'),
+            'id.exists' => __('task.product.update.id.exists'),
             'item_id.required' => __('task.product.update.item_id.required'),
             'item_id.exists_plus' => __('task.product.update.item_id.exists_plus'),
             'content.required' => __('task.product.update.content.required'),

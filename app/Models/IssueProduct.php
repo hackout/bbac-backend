@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $author_id 提交人ID
  * @property ?string $user_id 用户ID
  * @property ?string $task_id 任务ID
+ * @property ?string $task_item_id 任务ID
  * @property int $plant 工厂
  * @property int $line 产线
  * @property int $engine 机型
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $lama 长期措施
  * @property ?string $note 备注信息
  * @property ?string $eight_disciplines 8D
+ * @property ?string $ira 责任人
  * @property int $status 问题状态
  * @property int $type 考核类型
  * @property bool $is_ok OK/NOK
@@ -49,6 +51,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read ?Product $product 发动机
  * @property-read ?Part $part 零件清单
  * @property-read ?Task $task 任务单
+ * @property-read ?TaskItem $task_item 任务单
  * @property-read ?Collection<IssueProductLog> $logs 日志记录
  * @property-read ?Collection<Media> $media 附件
  * @property-read ?array<array<string,string>> $defect_attaches 缺陷图片
@@ -68,15 +71,37 @@ class IssueProduct extends Model implements HasMedia
      */
     const MEDIA_DEFECT = 'defect';
 
+    /**
+     * Verify
+     */
+    const STATUS_VERIFY = 1;
+
+    /**
+     * Ongoing
+     */
+    const STATUS_ONGOING = 2;
+
+    /**
+     * Closed
+     */
+    const STATUS_CLOSED = 3;
+
+    /**
+     * Overdue
+     */
+    const STATUS_OVERDUE = 4;
+
     protected $fillable = [
         'id',
         'author_id',
         'user_id',
         'task_id',
+        'task_item_id',
         'plant',
         'line',
         'engine',
         'stage',
+        'ira',
         'assembly_id',
         'product_id',
         'part_id',
@@ -170,6 +195,17 @@ class IssueProduct extends Model implements HasMedia
     public function task()
     {
         return $this->belongsTo(Task::class);
+    }
+
+    /**
+     * 任务单子项
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @return null|BelongsTo<TaskItem>|TaskItem|BelongsTo
+     */
+    public function task_item()
+    {
+        return $this->belongsTo(TaskItem::class);
     }
 
     /**

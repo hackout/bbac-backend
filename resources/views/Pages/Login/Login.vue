@@ -91,8 +91,8 @@ export default {
             this.form.post('login', {
                 onError: page => {
                     this.$tool.error(page)
+                    this.refreshCaptcha()
                     if (page.captcha) {
-                        this.refreshCaptcha()
                         this.showCaptcha = true
                     }
                 }

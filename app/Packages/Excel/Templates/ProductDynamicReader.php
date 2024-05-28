@@ -1,131 +1,264 @@
 <?php
 namespace App\Packages\Excel\Templates;
 
-use Str;
-use Storage;
-use App\Packages\Excel\ExcelPlus;
-use PhpOffice\PhpSpreadsheet\Shared\Font;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpPresentation\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use App\Models\ExamineProduct;
+use App\Models\IssueProduct;
+use App\Models\Product;
+use App\Models\Task;
+use App\Services\Private\DictService;
+use Illuminate\Database\Eloquent\Collection;
+use PhpOffice\PhpSpreadsheet\Worksheet\RowDimension;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Settings;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class ProductDynamicReader
 {
-    private Spreadsheet $spreadsheet;
-    private $item;
-    private $items;
-    private $startRow = 10;
-    private $startCell = 1;
 
-    private $mergeCell = 10;
+    protected Collection $issues;
+    protected array $variables = [];
+    protected $issuesVariables = [];
 
-    private $marginCell = 2;
-
-    /**
-     * 封装数据
-     *
-     * @author Dennis Lui <hackout@vip.qq.com>
-     * @param  array       $data
-     * @param  Spreadsheet $spreadsheet
-     * @return Spreadsheet
-     */
-    public function makeExcel(array $data, Spreadsheet $spreadsheet): Spreadsheet
+    public function __construct(private Task $task)
     {
-        $this->spreadsheet = $spreadsheet;
-        $this->items = $data['items'];
-        $this->item = [
-            "{index}" => $data['index'],
-            "{date}" => $data['date'],
-            "{shift}" => $data['shift'],
-            "{plant}" => $data['plant'],
-            "{sensor}" => $data['sensor'],
-            "{v_type}" => $data['v_type'],
-            "{eb_type}" => $data['eb_type'],
-            "{pn}" => $data['pn'],
-            "{en_bn}" => $data['en_bn'],
-            "{issue_description}" => $data['issue_description'],
-            "{root_cause}" => $data['root_cause'],
-            "{soma}" => $data['soma'],
-            "{status}" => $data['status']
-        ];
-        $this->makeItem();
-        $this->makePicture();
-        return $this->spreadsheet;
+        $this->issues = IssueProduct::where('task_id', $this->task->id)->get();
+        $this->makeVariable();
     }
 
-    private function makePicture()
+    public function convertContent($value): string
     {
-        if ($this->items) {
-            $sheet = $this->spreadsheet->getActiveSheet();
-            $that = $this;
-            foreach($this->items as $index => $item)
-            {
-                $rowIndex = $this->startRow;
-                $cellIndex = ($index * $this->mergeCell) + ($index * $this->marginCell) + 1;
-                $endCell = $cellIndex + $that->mergeCell - 1;
-                $borderColor = (new Color)->setRGB('27406A');
-                $backgroundColor = (new Color)->setRGB('335CA1');
-                $colorColor = (new Color)->setRGB('FFFFFF');
-                $cellName = ExcelPlus::numberToLetter($cellIndex).$rowIndex;
-                $sheet->setCellValue($cellName,'Picture Index #' .($index + 1));
-                $style = $sheet->getStyle($cellName);
-                $textRange = Str::replaceArray('?', [ExcelPlus::numberToLetter($cellIndex), $rowIndex, ExcelPlus::numberToLetter($endCell), $rowIndex], '??:??');
-                $sheet->mergeCells($textRange);
-                $style->getFill()->setFillType(Fill::FILL_SOLID)->setStartColor($backgroundColor);
-                $style->getFont()->setColor($colorColor);
-                $style->getAlignment()->setHorizontal(true);
-                $style->getAlignment()->setVertical(true);
-                $style->getAlignment()->setWrapText(true);
-                $style->getBorders()->getLeft()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $style->getBorders()->getRight()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $style->getBorders()->getTop()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $style->getBorders()->getBottom()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $path = str_replace(env('APP_URL'),'',$item['url']);
-                if(strpos($path,'/assets') === 0)
-                {
-                    $path = public_path($path);
+        $value = str_replace(['#loop#'], '', $value);
+        $result = str_replace(array_keys($this->variables), array_values($this->variables), $value);
+        return (string) preg_replace("/\{(.*?)\}/i", "", $result);
+    }
+
+    public function convertIssueContent($value, int $index = 0): string
+    {
+        $value = str_replace(['#loop#'], '', $value);
+        $result = str_replace(array_keys($this->issuesVariables[$index]), array_values($this->issuesVariables[$index]), $value);
+        return (string) preg_replace("/\{(.*?)\}/i", "", $result);
+    }
+
+    public function convertLoop(Worksheet $sheet, RowDimension $row): int
+    {
+        $columns = $sheet->getColumnDimensions();
+
+        if (!$this->issues->count()) {
+            foreach ($columns as $column) {
+                $cell = $sheet->getCellByColumnAndRow(Coordinate::columnIndexFromString($column->getColumnIndex()), $row->getRowIndex());
+                $value = $cell->getValue();
+
+                if ($value) {
+                    if ($value instanceof RichText) {
+                        $elements = $value->getRichTextElements();
+                        foreach ($elements as $element) {
+                            $value = htmlspecialchars($element->getText(), Settings::htmlEntityFlags());
+                            $element->setText($this->convertContent($value));
+                        }
+                    } else {
+                        $formatCode = $sheet->getParentOrThrow()->getCellXfByIndex($cell->getXfIndex())->getNumberFormat()->getFormatCode();
+                        $cellData = NumberFormat::toFormattedString($value ?? '', $formatCode ?? NumberFormat::FORMAT_GENERAL, [$this, 'formatColor']);
+                        $value = htmlspecialchars($cellData, Settings::htmlEntityFlags());
+                        $cell->setValue($this->convertContent($value));
+                    }
                 }
-                if(strpos($path,'/storage') === 0)
-                {
-                    $path = Storage::path(str_replace('/storage','/public',$path));
-                }
-                $coordinates = Str::replaceArray('?', [ExcelPlus::numberToLetter($cellIndex), $rowIndex + $that->marginCell], '??');
-                $style = $sheet->getStyle($coordinates);
-                $drawing = new Drawing();
-                $drawing->setPath($path);
-                $drawing->setCoordinates($coordinates);
-                $drawing->setCoordinates2($coordinates);
-                $drawing->setOffsetX2(ceil(Font::centimeterSizeToPixels(3.5)));
-                $drawing->setOffsetY2(ceil(Font::centimeterSizeToPixels(2)));
-                $drawing->setWorksheet($sheet);
-                $drawing->setEditAs(Drawing::EDIT_AS_ABSOLUTE);
-                $pictureRange = Str::replaceArray('?', [ExcelPlus::numberToLetter($cellIndex), $rowIndex + 2, ExcelPlus::numberToLetter($endCell), $rowIndex + 2], '??:??');
-                $sheet->mergeCells($pictureRange);
-                $style->getBorders()->getLeft()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $style->getBorders()->getRight()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $style->getBorders()->getTop()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
-                $style->getBorders()->getBottom()->setColor($borderColor)->setBorderStyle(Border::BORDER_HAIR);
             }
+            return $this->issues->count();
         }
-    }
 
-    private function makeItem()
-    {
-        $sheet = $this->spreadsheet->getActiveSheet();
-        $rows = $sheet->getRowDimensions();
-        $cols = $sheet->getColumnDimensions();
-        foreach ($rows as $row) {
-            foreach ($cols as $col) {
-                $cell = $sheet->getCell($col->getColumnIndex() . $row->getRowIndex());
-                if ($value = $cell->getValue()) {
-                    $newValue = str_replace(array_keys($this->item), array_values($this->item), $value);
-                    if ($value != $newValue) {
-                        $cell->setValue($newValue);
+        if ($this->issues->count() > 1) {
+            $sheet->insertNewRowBefore($row->getRowIndex(), $this->issues->count() - 1);
+        }
+
+        for ($i = 0; $i < $this->issues->count(); $i++) {
+            foreach ($columns as $column) {
+                $cell = $sheet->getCellByColumnAndRow(Coordinate::columnIndexFromString($column->getColumnIndex()), $row->getRowIndex() + $i);
+                $value = $cell->getValue();
+
+                if ($value) {
+                    if ($value instanceof RichText) {
+                        $elements = $value->getRichTextElements();
+                        foreach ($elements as $element) {
+                            $value = htmlspecialchars($element->getText(), Settings::htmlEntityFlags());
+                            $element->setText($this->convertIssueContent($value, $i));
+                        }
+                    } else {
+                        $formatCode = $sheet->getParentOrThrow()->getCellXfByIndex($cell->getXfIndex())->getNumberFormat()->getFormatCode();
+                        $cellData = NumberFormat::toFormattedString($value ?? '', $formatCode ?? NumberFormat::FORMAT_GENERAL, [$this, 'formatColor']);
+                        $value = htmlspecialchars($cellData, Settings::htmlEntityFlags());
+                        $cell->setValue($this->convertIssueContent($value, $i));
                     }
                 }
             }
         }
+
+        return $this->issues->count();
+    }
+
+    public function toArray(array $template): array
+    {
+        $result = [];
+        foreach ($template as $rs) {
+            if ($rs['loop']) {
+                foreach ($this->issues as $key => $issue) {
+                    $rs['data'] = $rs['data']->toArray();
+                    $row = $rs;
+                    foreach ($rs['data'] as $keyA => $cell) {
+                        $col = json_decode(json_encode($cell),true);
+                        foreach ($col['value'] as $key1 => $value) {
+                            $col['value'][$key1]['value'] = $this->convertIssueContent($value['value'],$key);
+                        }
+                        $row['data'][$keyA] = $col;
+                    }
+                    $result[] = $row;
+                }
+            } else {
+                $row = $rs;
+                $row['data'] = [];
+                foreach ($rs['data'] as $cell) {
+                    $cell['value'] = $cell['value']->toArray();
+                    foreach ($cell['value'] as $key => $value) {
+                        $cell['value'][$key]['value'] = $this->convertContent($value['value']);
+                    }
+                    $row['data'][] = $cell;
+                }
+                $result[] = $row;
+            }
+        }
+        return $result;
+    }
+
+    private function makeVariable()
+    {
+        $this->setTaskVariables();
+        $this->setDictionaryVariables();
+        $this->setExtraVariables();
+        $this->setExamineVariables();
+        $this->setTaskItemsVariables();
+        $this->setIssuesVariables();
+        $this->setProductVariables();
+    }
+
+    private function setProductVariables()
+    {
+        $this->variables['{beginning_at}'] = null;
+        $this->variables['{examine_at}'] = null;
+        $this->variables['{qc_at}'] = null;
+        $this->variables['{assembled_at}'] = null;
+        $product = Product::where('number', $this->task->eb_number)->first();
+        if ($product) {
+            $this->variables['{beginning_at}'] = optional($product->beginning_at)->toDateTimeString();
+            $this->variables['{examine_at}'] = optional($product->examine_at)->toDateTimeString();
+            $this->variables['{qc_at}'] = optional($product->qc_at)->toDateTimeString();
+            $this->variables['{assembled_at}'] = optional($product->assembled_at)->toDateTimeString();
+        }
+    }
+
+    private function setTaskVariables()
+    {
+        $this->variables['{id}'] = $this->task->id;
+        $this->variables['{name}'] = $this->task->name;
+        $this->variables['{remark}'] = $this->task->remark;
+        $this->variables['{eb_number}'] = $this->task->eb_number;
+        $this->variables['{number}'] = $this->task->number;
+        $this->variables['{period}'] = $this->task->period;
+        $this->variables['{work_date}'] = optional($this->task->start_at)->toDateTimeString();
+        $this->variables['{start_at}'] = optional($this->task->start_at)->toDateTimeString();
+        $this->variables['{end_at}'] = optional($this->task->end_at)->toDateTimeString();
+        $this->variables['{valid_at}'] = optional($this->task->valid_at)->toDateTimeString();
+        $this->variables['{created_at}'] = optional($this->task->created_at)->toDateTimeString();
+        $this->variables['{auditor}'] = optional(optional($this->task->user)->profile)->name ?? optional($this->task->user)->number;
+        $this->variables['{assembly}'] = optional($this->task->assembly)->number;
+        $this->variables['{assembly_id}'] = $this->task->assembly_id;
+    }
+
+    private function setDictionaryVariables()
+    {
+        $this->variables['{plant}'] = $this->getDictionaryName('plant', $this->task->plant);
+        $this->variables['{line}'] = $this->getDictionaryName('assembly_line', $this->task->line);
+        $this->variables['{engine}'] = $this->getDictionaryName('engine_type', $this->task->engine);
+        $this->variables['{task_status}'] = $this->getDictionaryName('task_status', $this->task->task_status);
+        $this->variables['{status}'] = $this->getDictionaryName('examine_status', $this->task->status);
+    }
+
+    private function setExtraVariables()
+    {
+        if ($this->task->extra && is_array($this->task->extra) && array_key_exists('values', $this->task->extra)) {
+            foreach ($this->task->extra['values'] as $key => $rs) {
+                $this->variables["{extra.{$key}}"] = $rs;
+            }
+        }
+    }
+
+    private function setExamineVariables()
+    {
+        if ($this->task->examine instanceof ExamineProduct) {
+            $this->variables['{version}'] = $this->task->original_examine['version'];
+            $this->variables['{examine_name}'] = $this->task->original_examine['name'];
+            $this->variables['{examine_description}'] = $this->task->original_examine['description'];
+            $this->variables['{examine_period}'] = $this->task->original_examine['period'];
+            $this->variables['{examine_type}'] = $this->getDictionaryName('examine_product_type', $this->task->original_examine['type']);
+        }
+    }
+
+    private function setTaskItemsVariables()
+    {
+        if ($this->task->items) {
+            foreach ($this->task->items as $item) {
+                $this->variables["{{$item->examine_item->unique_id}.index}"] = $item->sort_order;
+                $this->variables["{{$item->examine_item->unique_id}.remark}"] = $item->remark;
+                try {
+                    $content = json_decode($item->content, true);
+                } catch (\Throwable $th) {
+                    $content = $item->content;
+                }
+                $this->variables["{{$item->examine_item->unique_id}.status}"] = is_array($content) && array_key_exists('status', $content) ? $content['status'] : null;
+                $_dContent = array_key_exists('content', $content) ? $content['content'] : $content['value'];
+                $this->variables["{{$item->examine_item->unique_id}}"] = is_array($content) ? (is_array( $_dContent) ?  null :  $_dContent) : $content;
+                if (array_key_exists('number', $item->extra) && $item->extra['number']) {
+                    for ($i = 1; $i < $item->extra['number']; $i++) {
+                        $this->variables["{{$item->examine_item->unique_id}#{$i}}"] = is_array($content) && array_key_exists($i,$_dContent) ? $_dContent[$i] : null;
+                    }
+                }
+            }
+        }
+    }
+    private function setIssuesVariables()
+    {
+        $issues = IssueProduct::where('task_id', $this->task->id)->get();
+        $self = $this;
+        $this->issuesVariables = $issues->map(function (IssueProduct $item) use ($self) {
+            $defect_level = $self->getDictionaryName('defect_level', $item->defect_level);
+            $defect_position = $self->getDictionaryName('question_position', $item->defect_position);
+            return [
+                '{plant}' => $self->getDictionaryName('plant', $item->plant),
+                '{line}' => $self->getDictionaryName('assembly_line', $item->line),
+                '{engine}' => $self->getDictionaryName('engine_type', $item->engine),
+                '{stage}' => $self->getDictionaryName('assembly_status', $item->stage),
+                '{status}' => $self->getDictionaryName('issue_status', $item->status),
+                '{defect_description}' => $self->getDictionaryName('defect_category', $item->defect_description),
+                '{defect_level}' => $defect_level,
+                '{defect_class}' => $defect_level,
+                '{defect_category}' => $defect_level,
+                '{defect_part}' => $self->getDictionaryName('problem_parts', $item->defect_part),
+                '{defect_position}' => $defect_position,
+                '{defect_location}' => $defect_position,
+                '{defect_cause}' => $self->getDictionaryName('exactly_' . $item->defect_position, $item->defect_cause),
+                '{soma}' => $item->soma,
+                '{lama}' => $item->lama,
+                '{note}' => $item->note,
+                '{eight_disciplines}' => $item->eight_disciplines,
+                '{is_ok}' => $item->is_ok ? 'OK' : 'NOK',
+                '{part_name}' => optional($item->part)->name,
+                '{part_number}' => optional($item->part)->number,
+            ];
+        })->toArray();
+    }
+
+    private function getDictionaryName($type, $code)
+    {
+        return (new DictService())->getNameByCode($type, $code);
     }
 }

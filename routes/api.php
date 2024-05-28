@@ -54,10 +54,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //考核任务
     Route::group(['prefix' => '/task'], function () {
+        //整车服务
         Route::group(['prefix' => '/vehicle'], function () {
             Route::get('/', [TaskController::class, 'vehicle']);
             Route::get('/{id}', [TaskController::class, 'vehicleDetail'])->where('id', API_UUID_REGEX);
             Route::post('/{id}', [TaskController::class, 'vehicleUpdate'])->where('id', API_UUID_REGEX);
+        });
+
+        //产品考核
+        Route::group(['prefix' => '/product'], function () {
+            Route::get('/overhaul', [TaskController::class, 'productOverhaul']);
+            Route::get('/assembling', [TaskController::class, 'productAssembling']);
+            Route::get('/dynamic', [TaskController::class, 'productDynamic']);
+            Route::post('/enter', [TaskController::class, 'productEnter']);
+            Route::get('/{id}', [TaskController::class, 'productDetail'])->where('id', API_UUID_REGEX);
+            Route::post('/{id}/{order}', [TaskController::class, 'productPart'])->where(['id' => API_UUID_REGEX, 'order' => API_ID_REGEX]);
+            Route::post('/{id}/start', [TaskController::class, 'productStart'])->where('id', API_UUID_REGEX);
+            Route::post('/{id}/submit', [TaskController::class, 'productSubmit'])->where('id', API_UUID_REGEX);
+            Route::get('/{id}/preview', [TaskController::class, 'productPreview'])->where('id', API_UUID_REGEX);
         });
     });
 

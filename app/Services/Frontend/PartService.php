@@ -2,7 +2,7 @@
 namespace App\Services\Frontend;
 
 use Carbon\Carbon;
-use App\Models\User;
+use App\Models\Part;
 use App\Models\Product;
 use App\Services\Service;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -12,8 +12,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
  *
  * @author Dennis Lui <hackout@vip.qq.com>
  */
-class ProductService extends Service
+class PartService extends Service
 {
-    public ?string $className = Product::class;
-
+    public ?string $className = Part::class;
 }

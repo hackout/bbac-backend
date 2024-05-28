@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->uuid('author_id')->nullable()->comment("提交用户ID");
             $table->uuid('user_id')->nullable()->comment("处理用户ID");
             $table->uuid('task_id')->nullable()->comment('考核单ID');
+            $table->uuid('task_item_id')->nullable()->comment('考核单ID');
             $table->integer('plant')->default(0)->comment('工厂');
             $table->integer('line')->default(0)->comment('产线');
             $table->integer('engine')->default(0)->comment('发动机型号');
@@ -31,6 +32,7 @@ return new class extends Migration {
             $table->longText("lama")->nullable()->comment("长期措施");
             $table->longText("note")->nullable()->comment("备注信息");
             $table->longText("eight_disciplines")->nullable()->comment("8D");
+            $table->string("ira")->nullable()->comment("责任人");
             $table->integer("status")->default(0)->comment("问题状态");
             $table->integer("type")->default(0)->comment("考核类型");
             $table->boolean("is_ok")->default(false)->comment("是否OK");

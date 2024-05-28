@@ -10,7 +10,6 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Shared\Drawing as SharedDrawing;
-use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Settings;
 use PhpOffice\PhpSpreadsheet\Style\Font;
@@ -22,6 +21,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Html;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\RichText\Run;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
  * Excel读取器
@@ -45,6 +45,94 @@ class ExcelReader
         set_time_limit(0);
         $this->spreadsheet = IOFactory::load($fileName);
         $this->spreadsheet->setActiveSheetIndex(0);
+    }
+
+    public function writerData(Task $task,string $templateName,$fileName)
+    {
+        $write = new Xlsx($this->spreadsheet);
+        $sheet = $this->spreadsheet->getActiveSheet();
+        $cells = $sheet->getCellCollection();
+        $coordinates = $cells->getCoordinates();
+        $template = 'App\Packages\Excel\Templates\\'.$templateName;
+        $dict = new $template($task);
+        $loopRows = $this->getLoop();
+        foreach($coordinates as $coordinate)
+        {
+            $cell = $sheet->getCell($coordinate);
+            if(!in_array($cell->getRow(),$loopRows))
+            {
+                $value = $cell->getValue();
+                if($value)
+                {
+                    if ($value instanceof RichText) {
+                        $elements =$value->getRichTextElements();
+                        foreach ($elements as $element) {
+                            $value = htmlspecialchars($element->getText(), Settings::htmlEntityFlags());
+                            $element->setText($dict->convertContent($value));
+                        }
+                    } else {
+                        $formatCode = $sheet->getParentOrThrow()->getCellXfByIndex($cell->getXfIndex())->getNumberFormat()->getFormatCode();
+            
+                        $cellData = NumberFormat::toFormattedString(
+                            $value ?? '',
+                            $formatCode ?? NumberFormat::FORMAT_GENERAL,
+                            [$this, 'formatColor']
+                        );
+                        $value = htmlspecialchars($cellData, Settings::htmlEntityFlags());
+                        $cell->setValue($dict->convertContent($value));
+                    }
+                }
+            }
+        }
+        $startRow = 0;
+        foreach($loopRows as $rowIndex)
+        {
+            $row = $sheet->getRowDimension($rowIndex + $startRow);
+            $startRow += $dict->convertLoop($sheet,$row);
+        }
+        $write->save($fileName);
+    }
+
+    private function getLoop()
+    {
+        $sheet = $this->spreadsheet->getActiveSheet();
+        $cells = $sheet->getCellCollection();
+        $coordinates = $cells->getCoordinates();
+        $rows = [];
+        foreach($coordinates as $coordinate)
+        {
+            $cell = $sheet->getCell($coordinate);
+            $value = $cell->getValue();
+            if($value)
+            {
+                if ($value instanceof RichText) {
+                    $elements =$value->getRichTextElements();
+                    foreach ($elements as $element) {
+                        $value = htmlspecialchars($element->getText(), Settings::htmlEntityFlags());
+                        $loop = strpos($value, '#loop#') !== false;
+                        if($loop)
+                        {
+                            $rows[] = $cell->getRow();
+                        }
+                    }
+                } else {
+                    $formatCode = $sheet->getParentOrThrow()->getCellXfByIndex($cell->getXfIndex())->getNumberFormat()->getFormatCode();
+        
+                    $cellData = NumberFormat::toFormattedString(
+                        $value ?? '',
+                        $formatCode ?? NumberFormat::FORMAT_GENERAL,
+                        [$this, 'formatColor']
+                    );
+                    $value = htmlspecialchars($cellData, Settings::htmlEntityFlags());
+                    $loop = strpos($value, '#loop#') !== false;
+                    if($loop)
+                    {
+                        $rows[] = $cell->getRow();
+                    }
+                }
+            }
+        }
+        return array_unique($rows);
     }
 
     public function readData(Task $task,string $templateName)
@@ -88,8 +176,9 @@ class ExcelReader
             $row['variable'] = $variable;
             return $row;
         });
-        $template = 'App\Packages\Excel\Template\\'.$templateName;
-        return ['col' => $this->convertWidth($sheet, $maxCol), 'table' => new $template($task,$array)];
+        $template = 'App\Packages\Excel\Templates\\'.$templateName;
+        
+        return ['col' => $this->convertWidth($sheet, $maxCol),'id'=>$task->id, 'table' => (new $template($task))->toArray($array->toArray())];
     }
 
     private function convertWidth($sheet, $max)
@@ -333,7 +422,7 @@ class ExcelReader
             if ($value) {
                 $result[] = [
                     'style' => null,
-                    'value' => htmlspecialchars($cellData, Settings::htmlEntityFlags())
+                    'value' => $value
                 ];
             }
         }

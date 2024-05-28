@@ -2,6 +2,8 @@
 
 namespace App\Observers;
 
+use DB;
+use Str;
 use App\Models\CommitProduct;
 use App\Services\Private\CommitProductItemService;
 
@@ -14,6 +16,8 @@ class CommitProductObserver
     {
         if ($commitProduct->parent_id) {
             (new CommitProductItemService)->copyItem($commitProduct);
+        } else {
+            DB::table($commitProduct->getTable())->where('id', $commitProduct->id)->update(['unique_id' => Str::uuid()]);
         }
     }
 

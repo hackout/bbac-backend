@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->longText('remark')->nullable()->comment("备注信息");
             $table->string('eb_number')->nullable()->comment('发动机号');
             $table->uuid('assembly_id')->nullable()->comment("总成ID");
-            $table->string('task_status')->nullable()->comment('任务状态');
+            $table->integer('task_status')->default(0)->comment('任务状态');
             $table->string('number')->unique()->comment('考核单号');
             $table->decimal("period")->default(0)->comment("工时");
             $table->date("start_at")->nullable()->comment("开始考核时间");

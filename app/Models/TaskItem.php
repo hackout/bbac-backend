@@ -20,9 +20,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $user_id 用户ID
  * @property string $task_id 考核单ID
  * @property ?string $examine_item_id 考核项ID
- * @property string $sort_order 排序
+ * @property int $sort_order 排序
  * @property ?string $content 考核内容
- * @property ?string $extra 扩展选项
+ * @property ?array $extra 扩展选项
  * @property ?string $remark 备注信息
  * @property-read ?Carbon $created_at 创建时间
  * @property-read ?Carbon $updated_at 更新时间
@@ -30,6 +30,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read ?ExamineInlineItem|ExamineProductItem|ExamineVehicleItem $examine_item 考核项
  * @property-read ?User $user 用户
  * @property-read ?Collection<Media> $media 附件
+ * @property-read ?array<array<string,string>> $thumbnails 图示
+ * @property-read ?array<array<string,string>> $files 附件
  * 
  */
 class TaskItem extends Model implements HasMedia
@@ -64,6 +66,10 @@ class TaskItem extends Model implements HasMedia
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
+
+    public $appends = ['thumbnails','files'];
+
+    public $hidden = ['media'];
 
     /**
      * 考核单
@@ -102,6 +108,32 @@ class TaskItem extends Model implements HasMedia
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getThumbnailsAttribute()
+    {
+        if (!$medias = $this->getMedia(self::MEDIA_FILE))
+            return [];
+        return $medias->map(function ($item) {
+            return [
+                'name' => $item->file_name,
+                'url' => $item->original_url,
+                'uuid' => $item->uuid
+            ];
+        });
+    }
+    
+    public function getFilesAttribute()
+    {
+        if (!$medias = $this->getMedia(self::MEDIA_IMAGE))
+            return [];
+        return $medias->map(function ($item) {
+            return [
+                'name' => $item->file_name,
+                'url' => $item->original_url,
+                'uuid' => $item->uuid
+            ];
+        });
     }
 }
 

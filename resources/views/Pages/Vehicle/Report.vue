@@ -200,6 +200,10 @@ export default {
             type: Array,
             default: []
         },
+        vehicle_issue_type: {
+            type: Array,
+            default: []
+        },
         logs: {
             type: Array,
             default: []

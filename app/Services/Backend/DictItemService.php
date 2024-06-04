@@ -4,6 +4,7 @@ namespace App\Services\Backend;
 use App\Models\DictItem;
 use App\Services\Service;
 use App\Traits\ExportTemplateTrait;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -82,6 +83,7 @@ class DictItemService extends Service
             'name' => null,
             'content' => 0,
             'sort_order' => 0,
+            'thumbnail' => null
         ], $data));
         $dict = (new DictService)->find(['code' => $code]);
         if (!$dict->items->where('id', $id)->first()) {
@@ -94,6 +96,10 @@ class DictItemService extends Service
         ];
         $result = parent::update($id, $sql);
         if ($result) {
+            if ($thumbnail && $thumbnail instanceof UploadedFile) {
+                $this->item->media->each(fn($media) => $media->delete());
+                $this->item->addMedia($thumbnail)->toMediaCollection(DictItem::MEDIA_FILE);
+            }
             (new DictService)->clearCache();
         }
         return $result;

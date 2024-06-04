@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * 字典键值表
@@ -19,12 +23,16 @@ use Illuminate\Support\Carbon;
  * @property int $sort_order 排序
  * @property ?Carbon $created_at 创建时间
  * @property ?Carbon $updated_at 更新时间
+ * @property-read ?string $thumbnail 缩率图
  * @property-read BelongsTo<Dict> $dict 字典
+ * @property-read Collection<Media> $media 附件
  * 
  */
-class DictItem extends Model
+class DictItem extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
+
+    const MEDIA_FILE = 'file';
 
     protected $fillable = [
         'dict_id',
@@ -39,6 +47,14 @@ class DictItem extends Model
         'updated_at' => 'datetime'
     ];
 
+    public $appends = [
+        'thumbnail'
+    ];
+
+    public $hidden = [
+        'media'
+    ];
+
     /**
      * 字典
      *
@@ -48,5 +64,10 @@ class DictItem extends Model
     public function dict()
     {
         return $this->belongsTo(Dict::class);
+    }
+
+    public function getThumbnailAttribute()
+    {
+        return $this->getFirstMediaUrl(self::MEDIA_FILE);
     }
 }

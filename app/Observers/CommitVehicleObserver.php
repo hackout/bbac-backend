@@ -17,7 +17,10 @@ class CommitVehicleObserver
         if ($commitVehicle->parent_id) {
             (new CommitVehicleItemService)->copyItem($commitVehicle);
         } else {
-            DB::table($commitVehicle->getTable())->where('id', $commitVehicle->id)->update(['unique_id' => Str::uuid()]);
+            if ($commitVehicle->items->count()) {
+                $first = $commitVehicle->items->first();
+                DB::table($first->getTable())->where('commit_vehicle_id', $commitVehicle->id)->whereIsNull('unique_id')->update(['unique_id' => Str::uuid()]);
+            }
         }
     }
 

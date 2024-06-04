@@ -16,8 +16,11 @@ class CommitInlineObserver
     {
         if ($commitInline->parent_id) {
             (new CommitInlineItemService)->copyItem($commitInline);
-        }else{
-            DB::table($commitInline->getTable())->where('id',$commitInline->id)->update(['unique_id' => Str::uuid()]);
+        } else {
+            if ($commitInline->items->count()) {
+                $first = $commitInline->items->first();
+                DB::table($first->getTable())->where('commit_inline_id', $commitInline->id)->whereIsNull('unique_id')->update(['unique_id' => Str::uuid()]);
+            }
         }
     }
 

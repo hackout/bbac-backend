@@ -117,7 +117,7 @@
                             <span>预览</span><br />
                             <small>Preview</small>
                         </el-button>
-                        <el-button type="primary" size="small" @click="detailItem(scope.row)" link>
+                        <el-button type="primary" size="small" @click="viewItem(scope.row)" link>
                             <span>维护</span><br />
                             <small>Edit</small>
                         </el-button>

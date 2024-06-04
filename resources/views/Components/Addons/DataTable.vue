@@ -372,7 +372,7 @@ export default {
 }
 
 .DataTable :deep(thead th) {
-    font-weight: 200;
+    font-weight: 400;
 }
 
 .DataTable :deep(.el-table__footer) .cell {

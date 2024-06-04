@@ -43,8 +43,8 @@
             <el-form-item label="考核时间" prop="examine_at">
                 <el-date-picker v-model="form.examine_at" style="width:100%;" type="datetime" placeholder="请选择考核时间" />
             </el-form-item>
-            <el-form-item label="试热时间" prop="qc_at">
-                <el-date-picker v-model="form.qc_at" style="width:100%;" type="datetime" placeholder="请选择试热时间" />
+            <el-form-item label="热试时间" prop="qc_at">
+                <el-date-picker v-model="form.qc_at" style="width:100%;" type="datetime" placeholder="请选择热试时间" />
             </el-form-item>
             <el-form-item label="装配时间" prop="assembled_at">
                 <el-date-picker v-model="form.assembled_at" style="width:100%;" type="datetime" placeholder="请选择装配时间" />

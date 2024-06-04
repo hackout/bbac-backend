@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Services\Backend\AccountService;
 use App\Services\Backend\AuthService;
+use App\Services\Backend\DashboardService;
 use App\Services\Backend\DepartmentService;
 use App\Services\Backend\DictService;
 use App\Services\Backend\ProfileService;
@@ -27,9 +28,11 @@ class HomeController extends Controller
      * @author Dennis Lui <hackout@vip.qq.com>
      * @return InertiaResponse
      */
-    public function index(Request $request): InertiaResponse
+    public function index(Request $request,DashboardService $service): InertiaResponse
     {
-        return Inertia::render('Dashboard/Index');
+        return Inertia::render('Dashboard/Index',[
+            'items' => $service->dashboard()
+        ]);
     }
 
 

@@ -98,7 +98,7 @@ class ProductController extends Controller
             'assembly_id.exists' => '总成信息不正确',
             'beginning_at.date' => '接机时间不正确',
             'examine_at.date' => '考核时间不正确',
-            'qc_at.date' => '试热时间不正确',
+            'qc_at.date' => '热试时间不正确',
             'assembled_at.date' => '装配时间不正确',
         ];
         $data = $request->validate($rules, $messages);
@@ -143,7 +143,7 @@ class ProductController extends Controller
             'assembly_id.exists' => '总成信息不正确',
             'beginning_at.date' => '接机时间不正确',
             'examine_at.date' => '考核时间不正确',
-            'qc_at.date' => '试热时间不正确',
+            'qc_at.date' => '热试时间不正确',
             'assembled_at.date' => '装配时间不正确',
             'id.exists' => '产品信息不正确',
         ];

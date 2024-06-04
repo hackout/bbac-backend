@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property int $status 项目阶段
  * @property ?Carbon $beginning_at 接机时间
  * @property ?Carbon $examine_at 考核时间
- * @property ?Carbon $qc_at 试热时间
+ * @property ?Carbon $qc_at 热试时间
  * @property ?Carbon $assembled_at 装配时间
  * @property-read ?Carbon $created_at 创建时间
  * @property-read ?Carbon $updated_at 更新时间

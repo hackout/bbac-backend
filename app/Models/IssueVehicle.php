@@ -46,7 +46,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $ira 责任人
  * @property bool $is_confirm 放行确认
  * @property bool $is_ppm 是否PPM
- * @property bool $is_pre_highlight 是否PPM
+ * @property bool $is_pre_highlight 是否PreHighlight
+ * @property int $issue_type 问题类型
  * @property int $detect_area 探测区域
  * @property int $quantity 问题数量
  * @property ?string $cause 根本原因
@@ -134,6 +135,21 @@ class IssueVehicle extends Model implements HasMedia
      */
     const BLOCK_STATUS_SUCCESS = 3;
 
+    /**
+     * Information 问题
+     */
+    const ISSUE_TYPE_INFORMATION = 1;
+
+    /**
+     * PreHighlight 问题
+     */
+    const ISSUE_TYPE_PRE_HIGHLIGHT = 2;
+
+    /**
+     * Highlight 问题
+     */
+    const ISSUE_TYPE_HIGHLIGHT = 3;
+
     protected $fillable = [
         'id',
         'author_id',
@@ -164,6 +180,7 @@ class IssueVehicle extends Model implements HasMedia
         'is_confirm',
         'is_ppm',
         'is_pre_highlight',
+        'issue_type',
         'detect_area',
         'quantity',
         'cause',
@@ -192,7 +209,7 @@ class IssueVehicle extends Model implements HasMedia
         'is_block' => 'boolean',
         'is_confirm' => 'boolean',
         'is_ppm' => 'boolean',
-        'is_pre_highlight' => 'boolean',
+        'issue_type' => 'integer',
         'due_date' => 'datetime',
         'delivery_at' => 'datetime',
         'created_at' => 'datetime',

@@ -8,7 +8,7 @@
                 <div class="page-search-form">
                     <el-form ref="query" inline>
                         <el-form-item>
-                            <el-button type="primary" @click="exportExcel" icon="el-icon-lightning">
+                            <el-button type="primary" @click="exportData" icon="el-icon-lightning">
                                 <span>导出</span>
                             </el-button>
                         </el-form-item>
@@ -67,11 +67,11 @@ export default {
         })
     },
     methods: {
-        goList(){
+        goList() {
             history.go(-1)
         },
-        async exportExcel() {
-            var res = await this.$axios.get(this.$route('stuff.export',{id:this.item.id}))
+        async exportData() {
+            var res = await this.$axios.get(this.$route('stuff.export',{ id: this.item.id }))
             if (res.code == this.$config.successCode) {
                 this.$message.success('数据正在打包中,3秒后自动下载');
                 setTimeout(() => {
@@ -80,7 +80,7 @@ export default {
             } else {
                 this.$message.error(res.message)
             }
-        },
+        }
     }
 }
 </script>

@@ -163,6 +163,7 @@ class IssueVehicleService extends Service
             'lama' => array_key_exists('lama', $data) ? $data['lama'] : null,
             'eight_disciplines' => array_key_exists('eight_disciplines', $data) ? $data['eight_disciplines'] : null,
             'ira' => array_key_exists('ira', $data) ? $data['ira'] : null,
+            'issue_type' => array_key_exists('issue_type', $data) ? intval($data['issue_type']) : 0,
             'is_ppm' => array_key_exists('is_ppm', $data) ? $data['is_ppm'] : false,
             'is_pre_highlight' => array_key_exists('is_pre_highlight', $data) ? $data['is_pre_highlight'] : false,
             'detect_area' => array_key_exists('detect_area', $data) ? $data['detect_area'] : null,

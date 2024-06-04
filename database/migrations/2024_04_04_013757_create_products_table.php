@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->string('number')->unique()->comment("发动机号");
             $table->timestamp('beginning_at')->nullable()->comment('接机时间');
             $table->timestamp('examine_at')->nullable()->comment('考核时间');
-            $table->timestamp('qc_at')->nullable()->comment('试热时间');
+            $table->timestamp('qc_at')->nullable()->comment('热试时间');
             $table->timestamp('assembled_at')->nullable()->comment('装配时间');
             $table->timestamps();
             $table->comment = "发动机产品表";

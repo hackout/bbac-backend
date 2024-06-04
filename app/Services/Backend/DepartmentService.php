@@ -94,7 +94,7 @@ class DepartmentService extends Service
      */
     public function getList(User $user,array $data):array
     {
-        if(!$user->is_super || !optional($user->department)->has_top)
+        if(!$user->is_super && !optional($user->department)->has_top)
         {
             if(array_key_exists('parent_id',$data) && $data['parent_id'])
             {

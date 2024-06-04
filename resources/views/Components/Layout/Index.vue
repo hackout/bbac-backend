@@ -112,6 +112,9 @@ export default {
         box-shadow: var(--el-box-shadow-light);
         position: relative;
         z-index: 2;
+        :deep(.el-breadcrumb__inner.is-link){
+            font-weight: 400;
+        }
     }
 
     &-main {

@@ -1,27 +1,14 @@
 <?php
 namespace App\Services\Backend;
 
-use App\Imports\CommitImportSheet;
-use App\Imports\CommitVehicleImport;
-use App\Models\IssueVehicle;
+use Carbon\Carbon;
 use App\Models\Task;
+use App\Models\Product;
+use App\Models\VehicleTarget;
+use App\Models\VehicleOutbound;
+use App\Models\IssueVehicle;
 use App\Models\IssueProduct;
 use App\Models\ExamineProduct;
-use App\Models\Product;
-use App\Models\User;
-use App\Models\Commit;
-use App\Models\CommitVehicle;
-use App\Packages\CommitPlus\CommitPlus;
-use App\Packages\Department\DepartmentRole;
-use App\Services\Service;
-use App\Traits\ExportTemplateTrait;
-use App\Traits\ImportTemplateTrait;
-use Illuminate\Support\Collection;
-use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Carbon\Carbon;
 
 /**
  * 报表数据服务
@@ -33,14 +20,15 @@ class ReportService
 
     public function getVehicleDaily(string $date)
     {
-        $serviceFactories = (new DictService)->getOptionByCode('service_factory');
-        $engines = (new DictService)->getOptionByCode('eb_type');
         $date = Carbon::parse($date);
+        $serviceFactories = (new DictService)->getOptionByCode('service_factory', true);
+        $engines = (new DictService)->getOptionByCode('eb_type', true);
         $todaySql = [
             ['created_at', '>=', $date],
             ['created_at', '<', $date->clone()->addDay()]
         ];
         $list = IssueVehicle::where($todaySql)->get();
+        $targets = (new VehicleTargetService())->setQuery(['yearly' => $date->year])->getAll();
         $result = collect([
             'factories' => $serviceFactories->map(function ($item) use ($list) {
                 $status = 0;
@@ -53,6 +41,7 @@ class ReportService
                 return [
                     'value' => $item['value'],
                     'name' => $item['name'],
+                    'thumbnail' => $item['thumbnail'],
                     'status' => $status
                 ];
             }),
@@ -67,71 +56,92 @@ class ReportService
                 return [
                     'value' => $item['value'],
                     'name' => $item['name'],
+                    'thumbnail' => $item['thumbnail'],
                     'status' => $status
                 ];
             }),
-            'target' => $engines->map(function ($item) use ($list) {
+            'target' => $engines->map(function ($item) use ($targets) {
                 $status = 0;
-                if ($list->where('eb_type', $item['value'])->where('is_pre_highlight', true)->count()) {
-                    $status = 1;
-                }
-                if ($list->where('eb_type', $item['value'])->where('is_pre_highlight', false)->count()) {
-                    $status = 2;
-                }
                 return [
                     'value' => $item['value'],
                     'name' => $item['name'],
-                    'count' => $list->where('eb_type', $item['value'])->count(),
+                    'count' => optional($targets->where('eb_type', $item['value'])->first())->target ?? 0,
                     'status' => $status
                 ];
             }),
             'ytd' => $engines->map(function ($item) use ($date) {
-                $status = 0;
-                $date = $date->clone()->subYear();
+                $startDate = $date->clone()->firstOfYear();
+                $endDate = $date->clone()->addDay();
                 $where = [
-                    ['created_at', '>=', $date],
-                    ['created_at', '<', $date->clone()->addDay()],
+                    ['daily', '>=', $startDate],
+                    ['daily', '<', $endDate]
+                ];
+                $outboundSum = VehicleOutbound::where($where)->sum('outbound');
+                $status = 0;
+                $where = [
+                    ['created_at', '>=', $startDate],
+                    ['created_at', '<', $endDate],
                     ['eb_type', '=', $item['value']]
                 ];
-                if (IssueVehicle::where($where)->where('is_pre_highlight', true)->count()) {
+                $infoCount = IssueVehicle::where($where)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count();
+                $preCount = IssueVehicle::where($where)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count();
+                $highCount = IssueVehicle::where($where)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count();
+                if ($preCount > $highCount) {
                     $status = 1;
                 }
-                if (IssueVehicle::where($where)->where('is_pre_highlight', false)->count()) {
+                if ($highCount > $preCount) {
                     $status = 2;
+                }
+                $count = 0;
+                if ($outboundSum > 0 && ($infoCount + $preCount + $highCount) > 0) {
+                    $count = ($infoCount + $preCount + $highCount) / $outboundSum * 1000000;
                 }
                 return [
                     'value' => $item['value'],
                     'name' => $item['name'],
-                    'count' => IssueVehicle::where($where)->count(),
+                    'count' => $count,
                     'status' => $status
                 ];
             }),
-            'mtd' => $engines->map(function ($item) use ($list, $date) {
-                $status = 0;
-                $date = $date->clone()->subMonth();
+            'mtd' => $engines->map(function ($item) use ($date) {
+                $startDate = $date->clone()->firstOfMonth();
+                $endDate = $date->clone()->addDay();
                 $where = [
-                    ['created_at', '>=', $date],
-                    ['created_at', '<', $date->clone()->addDay()],
+                    ['daily', '>=', $startDate],
+                    ['daily', '<', $endDate]
+                ];
+                $outboundSum = VehicleOutbound::where($where)->sum('outbound');
+                $status = 0;
+                $where = [
+                    ['created_at', '>=', $startDate],
+                    ['created_at', '<', $endDate],
                     ['eb_type', '=', $item['value']]
                 ];
-                if (IssueVehicle::where($where)->where('is_pre_highlight', true)->count()) {
+                $infoCount = IssueVehicle::where($where)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count();
+                $preCount = IssueVehicle::where($where)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count();
+                $highCount = IssueVehicle::where($where)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count();
+                if ($preCount > $highCount) {
                     $status = 1;
                 }
-                if (IssueVehicle::where($where)->where('is_pre_highlight', false)->count()) {
+                if ($highCount > $preCount) {
                     $status = 2;
+                }
+                $count = 0;
+                if ($outboundSum > 0 && ($infoCount + $preCount + $highCount) > 0) {
+                    $count = ($infoCount + $preCount + $highCount) / $outboundSum * 1000000;
                 }
                 return [
                     'value' => $item['value'],
                     'name' => $item['name'],
-                    'count' => IssueVehicle::where($where)->count(),
+                    'count' => $count,
                     'status' => $status
                 ];
             }),
-            'preHighlight' => IssueVehicle::where($todaySql)->where('is_pre_highlight', true)->get()->map(function ($item) use ($todaySql, $date) {
+            'preHighlight' => IssueVehicle::where($todaySql)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->get()->map(function ($item) use ($todaySql, $date) {
                 $sql = [
                     ['description', '=', $item->description],
                     ['cause', '=', $item->cause],
-                    ['is_pre_highlight', '=', 1]
+                    ['issue_type', '=', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT]
                 ];
                 return [
                     'id' => $item->id,
@@ -153,11 +163,11 @@ class ReportService
                     'year_quantity' => IssueVehicle::where($sql)->where('created_at', '<=', $date)->where('created_at', '>=', $date->clone()->subYear())->count(),
                 ];
             }),
-            'highlight' => IssueVehicle::where($todaySql)->where('is_pre_highlight', false)->get()->map(function ($item) use ($todaySql, $date) {
+            'highlight' => IssueVehicle::where($todaySql)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->get()->map(function ($item) use ($todaySql, $date) {
                 $sql = [
                     ['description', '=', $item->description],
                     ['cause', '=', $item->cause],
-                    ['is_pre_highlight', '=', 0]
+                    ['issue_type', '=', IssueVehicle::ISSUE_TYPE_HIGHLIGHT]
                 ];
                 return [
                     'id' => $item->id,
@@ -179,10 +189,11 @@ class ReportService
                     'year_quantity' => IssueVehicle::where($sql)->where('created_at', '<=', $date)->where('created_at', '>=', $date->clone()->subYear())->count(),
                 ];
             }),
-            'information' => IssueVehicle::where($todaySql)->get()->map(function ($item) use ($todaySql, $date) {
+            'information' => IssueVehicle::where($todaySql)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->get()->map(function ($item) use ($todaySql, $date) {
                 $sql = [
                     ['description', '=', $item->description],
-                    ['cause', '=', $item->cause]
+                    ['cause', '=', $item->cause],
+                    ['issue_type', '=', IssueVehicle::ISSUE_TYPE_INFORMATION]
                 ];
                 return [
                     'id' => $item->id,
@@ -240,106 +251,55 @@ class ReportService
     {
         $startDay = Carbon::parse($date);
         $endDay = $startDay->clone()->endOfWeek();
-        $ebTypeList = (new DictService)->getOptionByCode('eb_type');
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
         $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
         return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
             $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
             $result = [
                 'name' => $eb_type['name'],
-                'w' => rand(1, 399),
-                'y' => rand(1, 399),
-                'm' => rand(1, 399),
-                'ay4' => rand(1, 399),
-                'ax4' => rand(1, 399),
-                'bb4' => rand(1, 399),
-                'ar4' => rand(1, 399),
-                'cwList' => [
-                    [
-                        'name' => 'CW1',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW2',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW3',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW4',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW5',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW6',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW7',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW8',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW9',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW10',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW11',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW12',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW13',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW14',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW15',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW16',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ]
-                ],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
                 'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
                     return [
                         'value' => $item['value'],
                         'name' => $item['name'],
-                        'count' => rand(1, 399)// $issues->where('cause_type', $item['value'])->count()
+                        'count' => $issues->where('cause_type', $item['value'])->count()
                     ];
                 })->filter(fn($n) => $n['count'])->values(),
                 'eight' => IssueVehicle::where('created_at', '>=', $startDay)
@@ -362,107 +322,56 @@ class ReportService
     public function getVehicleMonthly(string $date)
     {
         $startDay = Carbon::parse($date . '-01');
-        $endDay = $startDay->clone()->endOfWeek();
-        $ebTypeList = (new DictService)->getOptionByCode('eb_type');
+        $endDay = $startDay->clone()->endOfMonth();
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
         $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
         return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
             $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
             $result = [
                 'name' => $eb_type['name'],
-                'w' => rand(1, 399),
-                'y' => rand(1, 399),
-                'm' => rand(1, 399),
-                'ay4' => rand(1, 399),
-                'ax4' => rand(1, 399),
-                'bb4' => rand(1, 399),
-                'ar4' => rand(1, 399),
-                'cwList' => [
-                    [
-                        'name' => 'CW1',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW2',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW3',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW4',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW5',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW6',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW7',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW8',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW9',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW10',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW11',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW12',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW13',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW14',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW15',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ],
-                    [
-                        'name' => 'CW16',
-                        'count' => rand(1, 399),
-                        'sum' => rand(1, 399)
-                    ]
-                ],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear . '-' . $startDay->clone()->addMonth()->subDay()->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
                 'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
                     return [
                         'value' => $item['value'],
                         'name' => $item['name'],
-                        'count' => rand(1, 399)// $issues->where('cause_type', $item['value'])->count()
+                        'count' => $issues->where('cause_type', $item['value'])->count()
                     ];
                 })->filter(fn($n) => $n['count'])->values(),
                 'eight' => IssueVehicle::where('created_at', '>=', $startDay)
@@ -550,8 +459,7 @@ class ReportService
                 $array[] = $_score;
                 $score += $_score;
             }
-            if($array)
-            {
+            if ($array) {
                 $trends[] = [
                     'engine' => $engine['name'],
                     'trend' => $array,
@@ -561,7 +469,7 @@ class ReportService
         });
         $assemblyList = $trendList->pluck('assembly_id')->toArray();
         $issueOverviews = [];
-        $issues = IssueProduct::where($todaySql)->whereIn('assembly_id', $assemblyList)->get()->filter(fn($item) => !empty(optional($item->assembly)->number))->values()->map(function (IssueProduct $item) use (&$issueOverviews) {
+        $issues = IssueProduct::where($todaySql)->whereIn('assembly_id', $assemblyList)->get()->filter(fn($item) => !empty (optional($item->assembly)->number))->values()->map(function (IssueProduct $item) use (&$issueOverviews) {
             $assembly = $item->assembly->number;
             if ($item->task->original_examine['type'] != ExamineProduct::TYPE_DYNAMIC) {
                 if (!array_key_exists($assembly, $issueOverviews)) {

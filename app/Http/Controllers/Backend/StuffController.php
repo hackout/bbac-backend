@@ -92,6 +92,7 @@ class StuffController extends Controller
         ]);
     }
 
+
     /**
      * 产品考核-问题追踪
      *
@@ -106,7 +107,7 @@ class StuffController extends Controller
             'defect_category' => $dictService->getOptionByCode('defect_category'),
             'task_status' => $dictService->getOptionByCode('task_status'),
             'engine_type' => $dictService->getOptionByCode('engine_type'),
-            'examine_vehicle_item_type' => $dictService->getOptionByCode('examine_vehicle_item_type'),
+            'examine_product_item_type' => $dictService->getOptionByCode('examine_product_item_type'),
             'examine_type' => $dictService->getOptionByCode('examine_type'),
             'status' => $dictService->getOptionByCode('assembly_status'),
             'plant' => $dictService->getOptionByCode('plant'),
@@ -114,6 +115,7 @@ class StuffController extends Controller
             'users' => (new UserService())->getUserByProduct($request->user())
         ]);
     }
+
 
     /**
      * 获取整车服务-问题列表
@@ -177,6 +179,10 @@ class StuffController extends Controller
             'engine_type' => $dictService->getOptionByCode('engine_type'),
             'purpose' => $dictService->getOptionByCode('purpose'),
             'assembly_line' => $dictService->getOptionByCode('assembly_line'),
+            'question_position' => $dictService->getOptionByCode('question_position'),
+            'plant' => $dictService->getOptionByCode('plant'),
+            'assembly_status' => $dictService->getOptionByCode('assembly_status'),
+            'issue_status' => $dictService->getOptionByCode('issue_status'),
         ]);
     }
 

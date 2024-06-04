@@ -282,6 +282,16 @@ return [
                 'name' => '动态考核',
                 'path' => 'vehicle.task',
                 'show' => true,
+            ],
+            [
+                'name' => '每日发运量',
+                'path' => 'vehicle.outbound',
+                'show' => true,
+            ],
+            [
+                'name' => 'PPM Target',
+                'path' => 'vehicle.target',
+                'show' => true,
             ]
         ]
     ],

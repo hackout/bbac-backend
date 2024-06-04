@@ -28,8 +28,7 @@ class ReportController extends Controller
      */
     public function vehicle(Request $request): InertiaResponse
     {
-        return Inertia::render('Report/Vehicle', [
-        ]);
+        return Inertia::render('Report/Vehicle');
     }
 
     /**
@@ -41,8 +40,7 @@ class ReportController extends Controller
      */
     public function product(Request $request): InertiaResponse
     {
-        return Inertia::render('Report/Product', [
-        ]);
+        return Inertia::render('Report/Product');
     }
 
     /**
@@ -54,8 +52,7 @@ class ReportController extends Controller
      */
     public function inline(Request $request): InertiaResponse
     {
-        return Inertia::render('Report/Inline', [
-        ]);
+        return Inertia::render('Report/Inline');
     }
 
     /**
@@ -129,7 +126,7 @@ class ReportController extends Controller
      */
     public function vehicleWeekly(Request $request, DictService $dictService): InertiaResponse
     {
-        $date = $request->get('date') ?? date('Y-m-d',strtotime('last monday'));
+        $date = $request->get('date') ?? date('Y-m-d', strtotime('last monday'));
         return Inertia::render('Report/Vehicle/Weekly', [
             'date' => $date,
             'items' => fn() => (new ReportService)->getVehicleWeekly($date),

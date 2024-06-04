@@ -138,7 +138,7 @@ Route::middleware("auth")->group(function () {
             Route::group(['prefix' => '/item'], function () {
                 Route::get('/{code}', [DictItemController::class, 'list'])->name("dict_item.list")->where('code', SLUG_REGEX);
                 Route::post('/{code}', [DictItemController::class, 'create'])->name("dict_item.create")->where('code', SLUG_REGEX);
-                Route::put('/{code}/{id}', [DictItemController::class, 'update'])->name("dict_item.update")->where(['code' => SLUG_REGEX, 'id' => ID_REGEX]);
+                Route::post('/{code}/{id}', [DictItemController::class, 'update'])->name("dict_item.update")->where(['code' => SLUG_REGEX, 'id' => ID_REGEX]);
                 Route::post('/{code}/delete', [DictItemController::class, 'batchDelete'])->name("dict_item.batch_delete")->where(['code' => SLUG_REGEX]);
             });
         });
@@ -450,6 +450,10 @@ Route::middleware("auth")->group(function () {
         Route::group(['prefix' => '/vehicle'], function () {
             Route::get('/', [VehicleController::class, 'index'])->name('vehicle.index');
             Route::get('/finish', [VehicleController::class, 'finish'])->name('vehicle.finish');
+            Route::get('/outbound', [VehicleController::class, 'outbound'])->name('vehicle.outbound');
+            Route::get('/target', [VehicleController::class, 'target'])->name('vehicle.target');
+            Route::post('/outbound', [VehicleController::class, 'outboundUpdate'])->name('vehicle.outbound_update');
+            Route::post('/target', [VehicleController::class, 'targetUpdate'])->name('vehicle.target_update');
             Route::get('/task', [VehicleController::class, 'task'])->name('vehicle.task');
             Route::get('/task/list', [VehicleController::class, 'taskList'])->name('vehicle.task_list');
             Route::get('/task/{id}', [VehicleController::class, 'taskDetail'])->name('vehicle.task_detail')->where('id', UUID_REGEX);
@@ -471,6 +475,7 @@ Route::middleware("auth")->group(function () {
             Route::get('/', [StuffController::class, 'index'])->name('stuff.index');
             Route::get('/engine', [StuffController::class, 'engine'])->name('stuff.engine');
             Route::get('/dynamic', [StuffController::class, 'dynamic'])->name('stuff.dynamic');
+            Route::get('/issue', [StuffController::class, 'issue'])->name('stuff.issue');
             Route::get('/list', [StuffController::class, 'list'])->name('stuff.list');
             Route::post('/', [StuffController::class, 'create'])->name('stuff.create');
             Route::get('/{id}', [StuffController::class, 'detail'])->name('stuff.detail')->where('id', UUID_REGEX);
@@ -488,8 +493,11 @@ Route::middleware("auth")->group(function () {
             Route::get('/product', [ReportController::class, 'product'])->name('report.product');
             Route::get('/inline', [ReportController::class, 'inline'])->name('report.inline');
             Route::get('/vehicle/daily', [ReportController::class, 'vehicleDaily'])->name('report.vehicle_daily');
+            Route::post('/vehicle/daily', [ReportController::class, 'vehicleDailyUpdate'])->name('report.vehicle_daily_update');
             Route::get('/product/daily', [ReportController::class, 'productDaily'])->name('report.product_daily');
+            Route::post('/product/daily', [ReportController::class, 'productDailyUpdate'])->name('report.product_daily_update');
             Route::get('/inline/daily', [ReportController::class, 'inlineDaily'])->name('report.inline_daily');
+            Route::post('/inline/daily', [ReportController::class, 'inlineDailyUpdate'])->name('report.inline_daily_update');
             Route::get('/vehicle/weekly', [ReportController::class, 'vehicleWeekly'])->name('report.vehicle_weekly');
             Route::get('/product/weekly', [ReportController::class, 'productWeekly'])->name('report.product_weekly');
             Route::get('/inline/weekly', [ReportController::class, 'inlineWeekly'])->name('report.inline_weekly');

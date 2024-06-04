@@ -210,16 +210,16 @@ class ProductReassemblyReader
                 $this->variables["{{$item->examine_item->unique_id}.index}"] = $item->sort_order;
                 $this->variables["{{$item->examine_item->unique_id}.remark}"] = $item->remark;
                 try {
-                    $content = json_decode($item->content, true);
+                    $content = json_decode($item->content, true) ?? ['value'=>null];
                 } catch (\Throwable $th) {
-                    $content = $item->content;
+                    $content = ['value'=>$item->content];
                 }
                 $this->variables["{{$item->examine_item->unique_id}.status}"] = is_array($content) && array_key_exists('status', $content) ? $content['status'] : null;
                 $_dContent = array_key_exists('content', $content) ? $content['content'] : $content['value'];
                 $this->variables["{{$item->examine_item->unique_id}}"] = is_array($content) ? (is_array( $_dContent) ?  null :  $_dContent) : $content;
                 if (array_key_exists('number', $item->extra) && $item->extra['number']) {
                     for ($i = 1; $i < $item->extra['number']; $i++) {
-                        $this->variables["{{$item->examine_item->unique_id}#{$i}}"] = is_array($content) && array_key_exists($i,$_dContent) ? $_dContent[$i] : null;
+                        $this->variables["{{$item->examine_item->unique_id}#{$i}}"] = is_array($_dContent) && array_key_exists($i,$_dContent) ? $_dContent[$i] : null;
                     }
                 }
             }

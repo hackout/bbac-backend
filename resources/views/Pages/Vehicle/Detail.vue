@@ -6,6 +6,10 @@
                     <template #title>
                         <div class="form-block-title">
                             <span>基础信息</span>
+                            <el-radio-group style="margin-left: 20px;" :disabled="!editable" v-model="form.issue_type" size="small">
+                                <el-radio v-for="(item, index) in vehicle_issue_type" :key="index" :value="item.value" :label="item.value"
+                                    border>{{ item.name }}</el-radio>
+                            </el-radio-group>
                         </div>
                     </template>
                     <template #extra>
@@ -235,9 +239,9 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="是否需要Pre-Highlight" prop="is_pre_highlight">
+                        <el-form-item label="是否需要Pre-highlight" prop="is_pre_highlight">
                             <el-select style="width:100%" :disabled="!editable" v-model="form.is_pre_highlight"
-                                placeholder="是否需要Pre-Highlight" clearable filterable>
+                                placeholder="是否需要Pre-highlight" clearable filterable>
                                 <el-option :value="true" label="YES"></el-option>
                                 <el-option :value="false" label="NO"></el-option>
                             </el-select>
@@ -313,7 +317,8 @@
                             <el-text type="success" size="small" v-if="scope.row.code == 'create'">提交了问题</el-text>
                             <el-tooltip placement="top" v-if="scope.row.code == 'updated'">
                                 <template #content>
-                                    <div v-for="(c, i) in scope.row.extra" :key="i">{{ i + 1 }}. {{ tags[c.field] }}</div>
+                                    <div v-for="(c, i) in scope.row.extra" :key="i">{{ i + 1 }}. {{ tags[c.field] }}
+                                    </div>
                                 </template>
                                 <el-text type="primary" size="small" tag="ins">修改了问题</el-text>
                             </el-tooltip>
@@ -408,6 +413,10 @@ export default {
             type: Array,
             default: []
         },
+        vehicle_issue_type: {
+            type: Array,
+            default: []
+        },
         logs: {
             type: Array,
             default: []
@@ -438,6 +447,7 @@ export default {
                 ira: '',
                 is_ppm: '',
                 is_pre_highlight: '',
+                issue_type: '',
                 detect_area: '',
                 quantity: '',
                 cause: '',
@@ -487,6 +497,7 @@ export default {
                 is_confirm: '放行确认',
                 is_ppm: '是否PPM',
                 is_pre_highlight: '是否PreHighlight',
+                issue_type: '问题标注',
                 detect_area: '探测区域',
                 quantity: '问题数量',
                 cause: '根本原因',
@@ -512,6 +523,7 @@ export default {
                 ira: this.item.ira,
                 is_ppm: this.item.is_ppm,
                 is_pre_highlight: this.item.is_pre_highlight,
+                issue_type: this.item.issue_type,
                 detect_area: this.item.detect_area,
                 quantity: this.item.quantity,
                 cause: this.item.cause,

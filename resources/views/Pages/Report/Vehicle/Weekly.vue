@@ -22,7 +22,7 @@
                 <el-carousel @change="changeTab" ref="carousel" :initial-index="currentIndex" :autoplay="false"
                     height="689px" :loop="false" indicator-position="none">
                     <el-carousel-item v-for="(item, index) in items" :key="index">
-                        <ReportBox modeName="vehicle" title="Q-Loop 4-Weekly Summary-CWx"
+                        <ReportBox modeName="vehicle" :title="`Q-Loop 4-Weekly Summary-CW${item.current}`"
                             :footer="`${index + 1}/${items.length} QM E&B | AFS`" direction="row">
                             <ReportBlock :blockStyle="{ width: '300px', marginRight: '10px' }" title="Summary">
                                 <div class="report-left">
@@ -40,19 +40,19 @@
                                     </div>
                                     <div class="report-left-list">
                                         <div class="report-left-list-item">
-                                            <span>AY-4 Total Outbound Quantity</span>
+                                            <span>Total Outbound Quantity</span>
                                             <span>{{ $tool.groupSeparator(item.ay4) }}</span>
                                         </div>
                                         <div class="report-left-list-item">
-                                            <span>AX-4 Weekly Outbound Quantity</span>
+                                            <span>Weekly Outbound Quantity</span>
                                             <span>{{ $tool.groupSeparator(item.ax4) }}</span>
                                         </div>
                                         <div class="report-left-list-item">
-                                            <span>BB-4 PPM Target</span>
+                                            <span>PPM Target</span>
                                             <span>{{ $tool.groupSeparator(item.bb4) }}</span>
                                         </div>
                                         <div class="report-left-list-item">
-                                            <span>AR-4 PPM Issue Amount</span>
+                                            <span>PPM Issue Amount</span>
                                             <span>{{ $tool.groupSeparator(item.ar4) }}</span>
                                         </div>
                                     </div>
@@ -282,7 +282,7 @@ export default {
                     if (i > 0) {
                         ppt.addSlide()
                     }
-                    pres.title("Q-Loop 4-Weekly Summary-CWx")
+                    pres.title("Q-Loop 4-Weekly Summary-CW" + n.current)
                     ppt.addBlock('Summary', { x: 0, y: 0.562, w: 1.97 })
                     ppt.table([[
                         { text: ' ', options: { border: { type: 'solid', pt: '1', color: '27406A' }, w: '100%', h: 4.24 } }
@@ -367,18 +367,18 @@ export default {
                     })
                     ppt.table([
                         [
-                            { text: [{ text: 'AY-4 Total Outbound Quantity\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.ay4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
+                            { text: [{ text: 'Total Outbound Quantity\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.ay4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
 
                         ],
                         [
-                            { text: [{ text: 'AX-4 Weekly Outbound Quantity\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.ax4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
+                            { text: [{ text: 'Weekly Outbound Quantity\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.ax4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
 
                         ],
                         [
-                            { text: [{ text: 'BB-4 PPM Target\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.bb4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
+                            { text: [{ text: 'PPM Target\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.bb4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
                         ],
                         [
-                            { text: [{ text: 'AR-4 PPM Issue Amount\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.ar4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
+                            { text: [{ text: 'PPM Issue Amount\n', options: { fontSize: '8' } }, { text: this.$tool.groupSeparator(n.ar4), options: { fontSize: '9' } }], options: { border: { type: 'solid', pt: '0.5', color: '27406A' }, valign: "middle", w: '100%', h: 3 } },
                         ]
                     ], {
                         x: 0.1023622,

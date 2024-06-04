@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Services\Backend\TaskService;
 use App\Services\Backend\UserService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use App\Services\Backend\DictService;
 use App\Services\Backend\ExamineService;
 use Inertia\Response as InertiaResponse;
 use App\Services\Backend\IssueVehicleService;
+use App\Services\Backend\VehicleTargetService;
+use App\Services\Backend\VehicleOutboundService;
 use App\Services\Backend\IssueVehicleLogService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -44,6 +47,7 @@ class VehicleController extends Controller
             'issue_status' => $dictService->getOptionByCode('issue_status'),
             'issue_type' => $dictService->getOptionByCode('issue_type'),
             'detect_area' => $dictService->getOptionByCode('detect_area'),
+            'vehicle_issue_type' => $dictService->getOptionByCode('vehicle_issue_type'),
         ]);
     }
 
@@ -84,6 +88,7 @@ class VehicleController extends Controller
             'detect_area' => $dictService->getOptionByCode('detect_area'),
             'defect_level' => $dictService->getOptionByCode('defect_level'),
             'root_cause_type' => $dictService->getOptionByCode('root_cause_type'),
+            'vehicle_issue_type' => $dictService->getOptionByCode('vehicle_issue_type'),
             'item' => (new IssueVehicleService)->findById($id),
             'logs' => (new IssueVehicleLogService)->getListById($id)
         ]);
@@ -126,6 +131,7 @@ class VehicleController extends Controller
             'detect_area' => $dictService->getOptionByCode('detect_area'),
             'defect_level' => $dictService->getOptionByCode('defect_level'),
             'root_cause_type' => $dictService->getOptionByCode('root_cause_type'),
+            'vehicle_issue_type' => $dictService->getOptionByCode('vehicle_issue_type'),
             'item' => (new IssueVehicleService)->findById($id),
             'logs' => (new IssueVehicleLogService)->getListById($id)
         ]);
@@ -245,6 +251,7 @@ class VehicleController extends Controller
             'cause' => 'sometimes|nullable',
             'relate_parts' => 'sometimes|nullable',
             'cause_type' => 'sometimes|nullable|integer',
+            'issue_type' => 'sometimes|nullable|integer',
             'due_date' => 'sometimes|nullable|date',
             'delivery_confirm' => 'sometimes|nullable|boolean',
             'overview_attaches' => 'sometimes|nullable|array|max:3',
@@ -311,6 +318,7 @@ class VehicleController extends Controller
             'videos.max' => '视频不正确',
             'media.max' => '附件参数不正确',
             'id.exists' => '问题不存在或已删除',
+            'issue_type.integer' => '问题标注不正确',
         ];
 
         $validator = Validator::make(array_merge([
@@ -344,6 +352,7 @@ class VehicleController extends Controller
             'master_detail_attaches',
             'videos',
             'media',
+            'issue_type'
         ]);
         $issueVehicleService->updateVehicle($request->user(), $id, $data);
         return $this->success();
@@ -372,6 +381,92 @@ class VehicleController extends Controller
             'detect_area' => $dictService->getOptionByCode('detect_area'),
         ]);
     }
+
+    /**
+     * 整车服务-每日发运量
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request         $request
+     * @param  DictService $dictService
+     * @param  VehicleOutboundService $service
+     * @return InertiaResponse
+     */
+    public function outbound(Request $request, DictService $dictService, VehicleOutboundService $service): InertiaResponse
+    {
+        $month = $request->get('month', today()->firstOfMonth()->format('Y-m'));
+        return Inertia::render('Vehicle/OutBound', [
+            'month' => $month,
+            'eb_type' => $dictService->getOptionByCode('eb_type'),
+            'items' => $service->getList($month)
+        ]);
+    }
+
+    /**
+     * 整车服务-PPM Target
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request         $request
+     * @param  DictService $dictService
+     * @param  VehicleTargetService $service
+     * @return InertiaResponse
+     */
+    public function target(Request $request, DictService $dictService, VehicleTargetService $service): InertiaResponse
+    {
+        return Inertia::render('Vehicle/Target', [
+            'eb_type' => $dictService->getOptionByCode('eb_type'),
+            'items' => $service->getList()
+        ]);
+    }
+
+    /**
+     * 保存每日发运量
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request         $request
+     * @return RedirectResponse
+     */
+    public function outboundUpdate(Request $request, VehicleOutboundService $service): RedirectResponse
+    {
+        $rules = [
+            'daily' => 'required',
+            'outbound' => 'array'
+        ];
+        $messages = [
+            'daily.required' => '请输入日期',
+            'outbound.array' => '请输入发运量'
+        ];
+
+        $data = $request->validate($rules, $messages);
+        $service->saveDaily($data);
+        return back()->with('success', '保存信息成功');
+    }
+
+    /**
+     * 保存PPM Target
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  Request         $request
+     * @param  VehicleTargetService $service
+     * @return RedirectResponse
+     */
+    public function targetUpdate(Request $request, VehicleTargetService $service): RedirectResponse
+    {
+        $rules = [
+            'yearly' => 'required',
+            'eb_type' => 'integer',
+            'target' => 'integer'
+        ];
+        $messages = [
+            'yearly.required' => '请输入年份',
+            'eb_type.integer' => '请选择机型',
+            'target.integer' => '请输入发运量'
+        ];
+
+        $data = $request->validate($rules, $messages);
+        $service->saveYearly($data);
+        return back()->with('success', '保存信息成功');
+    }
+
 
     /**
      * 整车服务-动态考核

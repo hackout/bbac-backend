@@ -105,7 +105,8 @@ class DictItemController extends Controller
             'id' => 'exists:dict_items,id',
             'name' => 'required|max:100',
             'content' => 'required|integer',
-            'sort_order' => 'required|integer'
+            'sort_order' => 'required|integer',
+            'thumbnail' => 'sometimes|nullable|image'
         ];
         $messages = [
             'name.required' => '字典项键名不能为空',
@@ -116,11 +117,12 @@ class DictItemController extends Controller
             'sort_order.integer' => '字典项排序不正确',
             'code.exists' => '字典标识不正确',
             'id.exists' => '字典标识不正确',
+            'thumbnail.image' => '缩率图仅支持图片格式',
         ];
         $validator = Validator::make(array_merge([
             'code' => $code,
             'id' => $id
-        ], $request->post()), $rules, $messages);
+        ], $request->all()), $rules, $messages);
         if ($validator->fails()) {
             return $this->error($validator->errors()->first());
         }
@@ -128,7 +130,8 @@ class DictItemController extends Controller
             'code',
             'name',
             'content',
-            'sort_order'
+            'sort_order',
+            'thumbnail'
         ]);
         $dictItemService->update($id, $data);
         return $this->success();

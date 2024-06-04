@@ -39,8 +39,9 @@ return new class extends Migration {
             $table->string("ira")->nullable()->comment("责任人");
             $table->boolean("is_confirm")->default(false)->comment("是否确认");
             $table->boolean("delivery_confirm")->default(false)->comment("交付确认");
+            $table->boolean("is_pre_highlight")->default(false)->comment("是否PreHighlight");
             $table->boolean("is_ppm")->default(false)->comment("是否PPM");
-            $table->boolean("is_pre_highlight")->default(false)->comment("是否PPM");
+            $table->integer("issue_type")->default(0)->comment("标注状态");
             $table->integer("detect_area")->nullable()->comment("探测区域");
             $table->integer("block_days")->nullable()->comment("滞留天数");
             $table->integer("quantity")->nullable()->comment("问题数量");

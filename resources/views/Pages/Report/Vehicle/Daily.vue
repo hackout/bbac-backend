@@ -31,7 +31,7 @@
                                         <span>{{ factory.name }}</span>
                                     </div>
                                     <div class="report-picture-image">
-                                        <img src="/assets/imgs/car.png" />
+                                        <img :src="factory.thumbnail ? factory.thumbnail : '/assets/imgs/car.png'" />
                                     </div>
                                 </div>
                             </div>
@@ -43,7 +43,7 @@
                                         <span>{{ engine.name }}</span>
                                     </div>
                                     <div class="report-picture-image">
-                                        <img src="/assets/imgs/car.png" />
+                                        <img :src="engine.thumbnail ? engine.thumbnail : '/assets/imgs/car.png'" />
                                     </div>
                                 </div>
                             </div>
@@ -440,7 +440,7 @@ export default {
                         color: 'FFFFFF', fontSize: '8', border: { type: 'solid', pt: '1', color: '27406A' },
                         align: 'center'
                     }, {
-                    path: '/assets/imgs/car.png', h: 0.8267717, w: 1.5,
+                    path: n.thumbnail || '/assets/imgs/car.png', h: 0.8267717, w: 1.5,
                     x: x, y: y + 0.2362205,
                     fill: { color: '335CA1' }, border: { type: 'solid', pt: '1', color: '27406A' }
                 })
@@ -463,7 +463,7 @@ export default {
                         color: 'FFFFFF', fontSize: '8', border: { type: 'solid', pt: '1', color: '27406A' },
                         align: 'center'
                     }, {
-                    path: '/assets/imgs/car.png', h: 0.8267717, w: 1.2,
+                    path: n.thumbnail || '/assets/imgs/car.png', h: 0.8267717, w: 1.2,
                     x: x, y: y + 0.2362205,
                     fill: { color: '335CA1' }, border: { type: 'solid', pt: '1', color: '27406A' }
                 })

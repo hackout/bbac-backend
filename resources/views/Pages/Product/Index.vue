@@ -85,7 +85,7 @@
                         <el-tag size="small">{{ $tool.dateFormat(scope.row.examine_at) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column label="试热时间" align="center" prop="qc_at" width="185">
+                <el-table-column label="热试时间" align="center" prop="qc_at" width="185">
                     <template #default="scope">
                         <el-tag size="small">{{ $tool.dateFormat(scope.row.qc_at) }}</el-tag>
                     </template>

@@ -29,6 +29,8 @@
         "mammoth": "^1.7.0",
         "pinyin-pro": "^3.19.3",
         "pptxgenjs": "^3.12.0",
+        "qrcode-reader-vue3": "^3.1.2",
+        "qrcode.vue": "^3.4.1",
         "sortablejs": "^1.15.1",
         "unplugin-auto-import": "^0.17.2",
         "vue": "^3.3.12",

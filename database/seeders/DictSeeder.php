@@ -3008,6 +3008,24 @@ class DictSeeder extends Seeder
                         'content' => 4,
                     ]
                 ]
+            ],
+            [
+                'name' => '整车服务-问题标注类型',
+                'code' => 'vehicle_issue_type',
+                'options' => [
+                    [
+                        'name' => 'Information',
+                        'content' => 1,
+                    ],
+                    [
+                        'name' => 'Pre-Highlight',
+                        'content' => 2,
+                    ],
+                    [
+                        'name' => 'Highlight',
+                        'content' => 3,
+                    ]
+                ]
             ]
         ];
     }

@@ -5,171 +5,166 @@
                 <div class="page-search-buttons">
                     <el-button @click="goList">返回</el-button>
                 </div>
-                <div class="page-search-form">
+                <div class="page-search-form" style="align-items: center">
                     <el-form ref="query" inline>
                         <el-form-item>
-                            <el-button type="primary" @click="exportExcel" icon="el-icon-view">
-                                <span>预览</span>
-                            </el-button>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="exportExcel" icon="el-icon-edit">
-                                <span>编辑</span>
+                            <el-button type="primary" @click="goEdit" icon="el-icon-edit">
+                                <span>维护报告</span>
                             </el-button>
                         </el-form-item>
                     </el-form>
                 </div>
             </div>
-        <table class="report-table" border="1">
-            <colgroup>
-                <col width="12.5%" />
-                <col width="12.5%" />
-                <col width="12.5%" />
-                <col width="12.5%" />
-                <col width="12.5%" />
-                <col width="12.5%" />
-                <col width="12.5%" />
-                <col width="12.5%" />
-            </colgroup>
-            <tbody>
-                <tr>
-                    <td>
-                        <span>产品/Prod.</span>
-                    </td> 
-                    <td>
-                        <span>{{$status('engine_type',item.engine)}}</span>
-                    </td> 
-                    <td>
-                        <span>工厂/Plant.</span>
-                    </td> 
-                    <td>
-                        <span>{{$status('plant',item.plant)}}</span>
-                    </td> 
-                    <td>
-                        <span>产线/Line.</span>
-                    </td> 
-                    <td>
-                        <span>{{$status('assembly_line',item.line)}}</span>
-                    </td> 
-                    <td>
-                        <span>部门/Dept.</span>
-                    </td> 
-                    <td>
-                        <span>{{item.department}}</span>
-                    </td> 
-                </tr>
-                <tr>
-                    <td>
-                        <span>标题/Title</span>
-                    </td> 
-                    <td align="center" colspan="7">
-                        <span>{{item.name}}</span>
-                    </td> 
-                </tr>
-                <tr class="report-title">
-                    <td colspan="8" align="center">
-                        <span>发动机信息/Engine Data</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <span>总成号/Assembly.</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{item.assembly}}</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>发动机号/Engine No.</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{item.eb_number}}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <span>生产阶段/Phase.</span>
-                    </td> 
-                    <td colspan="6">
-                        <span>M264</span>
-                    </td> 
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <span>转配日期/Assembly Date</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{$tool.dateFormat(item.examine_at)}}</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>热试日期/QC Date</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{$tool.dateFormat(item.qc_at)}}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <span>接机日期/Audit Beginning</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{$tool.dateFormat(item.beginning_at)}}</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>交机日期/Audit End</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{$tool.dateFormat(item.assembled_at)}}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <span>再装配检查/ReQualification</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>M264</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>考核员/Auditor</span>
-                    </td> 
-                    <td colspan="2">
-                        <span>{{item.auditor}}</span>
-                    </td>
-                </tr>
-                <tr class="report-title">
-                    <td colspan="8" align="center">
-                        <span>缺陷判定/inding</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <span>位置/Location</span>
-                    </td> 
-                    <td>
-                        <span>M264</span>
-                    </td> 
-                    <td>
-                        <span>缺陷等级/Defect Class</span>
-                    </td> 
-                    <td>
-                        <span>M264</span>
-                    </td>
-                    <td>
-                        <span>描达/Description</span>
-                    </td> 
-                    <td colspan="3">
-                        <span>M264</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td valign="middle">
-                        <span>图片/Pictures</span>
-                    </td> 
-                    <td colspan="7">
-                        <span>M264</span>
-                    </td> 
-                </tr>
-            </tbody>
-        </table>
+            <table class="report-table" border="1">
+                <colgroup>
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                    <col width="12.5%" />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td>
+                            <span>产品/Prod.</span>
+                        </td>
+                        <td>
+                            <span>{{ $status('engine_type', item.engine) }}</span>
+                        </td>
+                        <td>
+                            <span>工厂/Plant.</span>
+                        </td>
+                        <td>
+                            <span>{{ $status('plant', item.plant) }}</span>
+                        </td>
+                        <td>
+                            <span>产线/Line.</span>
+                        </td>
+                        <td>
+                            <span>{{ $status('assembly_line', item.line) }}</span>
+                        </td>
+                        <td>
+                            <span>部门/Dept.</span>
+                        </td>
+                        <td>
+                            <span>{{ item.department }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>标题/Title</span>
+                        </td>
+                        <td align="center" colspan="7">
+                            <span>{{ item.name }}</span>
+                        </td>
+                    </tr>
+                    <tr class="report-title">
+                        <td colspan="8" align="center">
+                            <span>发动机信息/Engine Data</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span>总成号/Assembly.</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ item.assembly }}</span>
+                        </td>
+                        <td colspan="2">
+                            <span>发动机号/Engine No.</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ item.eb_number }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span>生产阶段/Phase.</span>
+                        </td>
+                        <td colspan="6">
+                            <span>{{ $status('assembly_status', item.status) }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span>转配日期/Assembly Date</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ $tool.dateFormat(item.examine_at) }}</span>
+                        </td>
+                        <td colspan="2">
+                            <span>热试日期/QC Date</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ $tool.dateFormat(item.qc_at) }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span>接机日期/Audit Beginning</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ $tool.dateFormat(item.beginning_at) }}</span>
+                        </td>
+                        <td colspan="2">
+                            <span>交机日期/Audit End</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ $tool.dateFormat(item.assembled_at) }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span>再装配检查/ReQualification</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ $tool.dateFormat(item.updated_at) }}</span>
+                        </td>
+                        <td colspan="2">
+                            <span>考核员/Auditor</span>
+                        </td>
+                        <td colspan="2">
+                            <span>{{ item.auditor }}</span>
+                        </td>
+                    </tr>
+                    <tr class="report-title">
+                        <td colspan="8" align="center">
+                            <span>缺陷判定/Finding</span>
+                        </td>
+                    </tr>
+                    <tr v-for="(issue,index) in issues" :key="index">
+                        <td>
+                            <span>位置/Location</span>
+                        </td>
+                        <td>
+                            <span>M264</span>
+                        </td>
+                        <td>
+                            <span>缺陷等级/Defect Class</span>
+                        </td>
+                        <td>
+                            <span>M264</span>
+                        </td>
+                        <td>
+                            <span>描达/Description</span>
+                        </td>
+                        <td colspan="3">
+                            <span>M264</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign="middle">
+                            <span>图片/Pictures</span>
+                        </td>
+                        <td colspan="7">
+                            <span>M264</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </Layout>
 </template>
@@ -177,6 +172,10 @@
 
 export default {
     props: {
+        item: {
+            type: Object,
+            default: []
+        },
         defect_level: {
             type: Array,
             default: []
@@ -193,15 +192,15 @@ export default {
             type: Array,
             default: []
         },
-        examine_product_item_type: {
+        purpose: {
             type: Array,
             default: []
         },
-        examine_type: {
+        assembly_line: {
             type: Array,
             default: []
         },
-        status: {
+        question_position: {
             type: Array,
             default: []
         },
@@ -209,14 +208,14 @@ export default {
             type: Array,
             default: []
         },
-        line: {
+        assembly_status: {
             type: Array,
             default: []
         },
-        item: {
-            type:Object,
-            default: {}
-        },
+        issue_status: {
+            type: Array,
+            default: []
+        }
     },
     data() {
         return {
@@ -229,18 +228,22 @@ export default {
                 date: ['', ''],
                 type: 2
             },
-            DetailDialogVisit: false
+            DetailDialogVisit: false,
+            editable: false
         }
     },
     mounted() {
         this.$nextTick(() => { })
     },
     methods: {
-        viewItem(item) {
-            this.$goTo('stuff.detail', { id: item.id });
+        goEdit() {
+            this.editable = true
         },
-        previewItem(item) {
-            this.$goTo('stuff.report', { id: item.id });
+        goList() {
+            history.go(-1)
+        },
+        previewItem() {
+            this.$goTo('stuff.preview', { id: this.item.id });
         },
         async onSearch() {
             var validate = await this.$refs.query.validate().catch(() => { })
@@ -264,7 +267,6 @@ export default {
 </script>
 
 <style scoped>
-
 :deep(.el-button > span) {
     display: inline-block;
 }
@@ -276,14 +278,17 @@ table {
     border: #CCCCCC 1px solid;
     table-layout: fixed;
     background: #ffffff;
-    tr{
+
+    tr {
         height: 50px;
-        &.report-title{
-            td{
+
+        &.report-title {
+            td {
                 background-color: #EEEEEE;
             }
         }
     }
+
     td {
         border-color: #CCC;
         position: relative;

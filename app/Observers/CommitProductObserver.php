@@ -17,7 +17,10 @@ class CommitProductObserver
         if ($commitProduct->parent_id) {
             (new CommitProductItemService)->copyItem($commitProduct);
         } else {
-            DB::table($commitProduct->getTable())->where('id', $commitProduct->id)->update(['unique_id' => Str::uuid()]);
+            if ($commitProduct->items->count()) {
+                $first = $commitProduct->items->first();
+                DB::table($first->getTable())->where('commit_product_id', $commitProduct->id)->whereIsNull('unique_id')->update(['unique_id' => Str::uuid()]);
+            }
         }
     }
 

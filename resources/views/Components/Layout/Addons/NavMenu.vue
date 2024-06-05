@@ -1,5 +1,5 @@
 <template>
-    <div @click="$goTo(item.path)" class="bbacUi-aside-item" :class="{ active: currentName == item.path }"
+    <Link :href="$route(item.path)" class="bbacUi-aside-item" :class="{ active: currentName == item.path }"
         v-for="(item, index) in items" :key="index">
         <div class="bbacUi-aside-item-icon">
             <el-icon>
@@ -13,7 +13,7 @@
         <div class="bbacUi-aside-item-arrow">
             <el-icon-arrow-right />
         </div>
-    </div>
+    </Link>
 </template>
 
 <script>

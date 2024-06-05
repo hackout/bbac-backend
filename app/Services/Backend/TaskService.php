@@ -277,6 +277,22 @@ class TaskService extends Service
     }
 
     /**
+     * 删除产品考核考核订单
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  User   $user
+     * @param  string $id
+     * @return void
+     */
+    public function deleteProduct(User $user, string $id)
+    {
+        if (!DepartmentRole::checkProduct($user)) {
+            throw ValidationException::withMessages(['permission' => '暂无该操作权限']);
+        }
+        parent::delete($id);
+    }
+
+    /**
      * 获取整车考核单
      *
      * @author Dennis Lui <hackout@vip.qq.com>
@@ -330,28 +346,33 @@ class TaskService extends Service
         }
         $item = parent::findById($id);
         $fileName = [
-            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
+            (new DictService())->getNameByCode('engine_type', $item->original_examine['engine'])
         ];
+        $name = '考核记录';
         switch ($item->original_examine['type']) {
             case CommitProduct::TYPE_OVERHAUL:
                 $fileName[] = 'Assembly';
+                $name = '拆检' . $name;
                 break;
             case CommitProduct::TYPE_ASSEMBLING:
                 $fileName[] = 'Reassembly';
+                $name = '装配' . $name;
                 break;
             case CommitProduct::TYPE_DYNAMIC:
                 $fileName[] = 'Dynamic';
+                $name = '动态' . $name;
                 break;
         }
         $fileName[] = '.xlsx';
-        $templateFile = implode('',$fileName);
-        $file = resource_path('templates/'.$templateFile);
-        if(!file_exists($file))
-        {
+        $templateFile = implode('', $fileName);
+        $file = resource_path('templates/' . $templateFile);
+        if (!file_exists($file)) {
             throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
         }
         return [
             'id' => $item->id,
+            'name' => $item->eb_number . '的' . $name,
+            'type' => $fileName[1],
             'engine' => $item->engine,
             'user_id' => $item->user_id,
             'auditor' => optional(optional($item->user)->profile)->name ?? optional($item->user)->number,
@@ -389,7 +410,7 @@ class TaskService extends Service
         }
         $item = parent::findById($id);
         $fileName = [
-            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
+            (new DictService())->getNameByCode('engine_type', $item->original_examine['engine'])
         ];
         $templateName = null;
         switch ($item->original_examine['type']) {
@@ -407,14 +428,13 @@ class TaskService extends Service
                 break;
         }
         $fileName[] = '.xlsx';
-        $templateFile = implode('',$fileName);
-        $file = resource_path('templates/'.$templateFile);
-        if(!file_exists($file))
-        {
+        $templateFile = implode('', $fileName);
+        $file = resource_path('templates/' . $templateFile);
+        if (!file_exists($file)) {
             throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
         }
         $templateData = (new ExcelReader($file));
-        return $templateData->readData($item,$templateName);
+        return $templateData->readData($item, $templateName);
     }
     /**
      * 导出产品考核单
@@ -431,7 +451,7 @@ class TaskService extends Service
         }
         $item = parent::findById($id);
         $fileName = [
-            (new DictService())->getNameByCode('engine_type',$item->original_examine['engine'])
+            (new DictService())->getNameByCode('engine_type', $item->original_examine['engine'])
         ];
         $templateName = null;
         switch ($item->original_examine['type']) {
@@ -449,10 +469,9 @@ class TaskService extends Service
                 break;
         }
         $fileName[] = '.xlsx';
-        $templateFile = implode('',$fileName);
-        $file = resource_path('templates/'.$templateFile);
-        if(!file_exists($file))
-        {
+        $templateFile = implode('', $fileName);
+        $file = resource_path('templates/' . $templateFile);
+        if (!file_exists($file)) {
             throw ValidationException::withMessages(['permission' => '请先上传记录模板']);
         }
         $templateData = (new ExcelReader($file));
@@ -461,7 +480,7 @@ class TaskService extends Service
             @mkdir($path);
         }
         $fileName = 'exports/' . Str::uuid() . '.xlsx';
-        $templateData->writerData($item,$templateName, storage_path('app/public/' . $fileName));
+        $templateData->writerData($item, $templateName, storage_path('app/public/' . $fileName));
         return Storage::url($fileName);
     }
 

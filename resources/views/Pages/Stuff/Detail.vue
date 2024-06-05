@@ -27,6 +27,11 @@
                     <col width="12.5%" />
                 </colgroup>
                 <tbody>
+                    <tr class="report-title">
+                        <td colspan="8" align="center">
+                            <span>基础信息/Basic Details</span>
+                        </td>
+                    </tr>
                     <tr>
                         <td>
                             <span>产品/Prod.</span>
@@ -130,50 +135,67 @@
                             <span>{{ item.auditor }}</span>
                         </td>
                     </tr>
-                    <tr class="report-title">
+                    <tr class="report-title" v-if="issues.length > 0">
                         <td colspan="8" align="center">
                             <span>缺陷判定/Finding</span>
                         </td>
                     </tr>
-                    <tr v-for="(issue,index) in issues" :key="index">
-                        <td>
-                            <span>位置/Location</span>
-                        </td>
-                        <td>
-                            <span>M264</span>
-                        </td>
-                        <td>
-                            <span>缺陷等级/Defect Class</span>
-                        </td>
-                        <td>
-                            <span>M264</span>
-                        </td>
-                        <td>
-                            <span>描达/Description</span>
-                        </td>
-                        <td colspan="3">
-                            <span>M264</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td valign="middle">
-                            <span>图片/Pictures</span>
-                        </td>
-                        <td colspan="7">
-                            <span>M264</span>
-                        </td>
-                    </tr>
+                    <template v-for="(issue, index) in issues" :key="index">
+                        <tr>
+                            <td>
+                                <span>位置/Location</span>
+                            </td>
+                            <td>
+                                <span>{{ $status('question_position', issue.defect_position) }}</span>
+                            </td>
+                            <td>
+                                <span>缺陷等级/Defect Class</span>
+                            </td>
+                            <td>
+                                <span>{{ $status('defect_level', issue.defect_level) }}</span>
+                            </td>
+                            <td>
+                                <span>描达/Description</span>
+                            </td>
+                            <td colspan="3">
+                                <span>{{ $status('defect_category', issue.defect_description) }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td valign="middle">
+                                <span>图片/Pictures</span>
+                            </td>
+                            <td colspan="7">
+                                <el-image @click="previewThumbnail(issue.defect_attaches, index1)"
+                                    v-for="(attach, index1) in issue.defect_attaches" :key="index1" :src="attach.url"
+                                    style="width: 145px;height:145px;cursor:pointer;margin-right:10px;margin-bottom:10px;display:inline-block;"></el-image>
+                            </td>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
         </div>
+        <el-image-viewer v-if="showViewer" @close="showViewer = false" infinite :initial-index="viewerIndex"
+            :url-list="viewerList" />
+        <component ref="editDialog" :defect_level="defect_level" :issue_status="issue_status" :defect_category="defect_category" :is='item.type' @success="onSuccess">
+        </component>
     </Layout>
 </template>
 <script>
-
+import { defineAsyncComponent } from 'vue'
 export default {
+    components: {
+        Assembly: defineAsyncComponent(() => import('@view/Pages/Stuff/Addons/SaveAssemblyDialog.vue')),
+        Reassembly: defineAsyncComponent(() => import('@view/Pages/Stuff/Addons/SaveReassemblyDialog.vue')),
+        Dynamic: defineAsyncComponent(() => import('@view/Pages/Stuff/Addons/SaveDynamicDialog.vue')),
+    },
     props: {
         item: {
             type: Object,
+            default: []
+        },
+        issues: {
+            type: Array,
             default: []
         },
         defect_level: {
@@ -229,7 +251,9 @@ export default {
                 type: 2
             },
             DetailDialogVisit: false,
-            editable: false
+            showViewer: false,
+            viewerIndex: 0,
+            viewerList: []
         }
     },
     mounted() {
@@ -237,30 +261,25 @@ export default {
     },
     methods: {
         goEdit() {
-            this.editable = true
+            let issue = this.issues.filter(n => n.status != 3);
+            if (issue.length == 0) {
+                this.$message.error("暂无可维护记录");
+            } else {
+                this.$nextTick(() => {
+                    this.$refs.editDialog.open(issue[0])
+                })
+            }
         },
         goList() {
             history.go(-1)
         },
-        previewItem() {
-            this.$goTo('stuff.preview', { id: this.item.id });
+        previewThumbnail(list, i) {
+            this.viewerList = list.map(n => n.url)
+            this.viewerIndex = i
+            this.showViewer = true
         },
-        async onSearch() {
-            var validate = await this.$refs.query.validate().catch(() => { })
-            if (!validate) return false;
-            this.$nextTick(() => {
-                this.$refs.table.upData(this.query)
-            })
-        },
-        openDetail(item) {
-            this.DetailDialogVisit = true
-            this.$nextTick(() => {
-                this.$refs.DetailDialog.open(item)
-            })
-        },
-        refreshData() {
-            this.editable = false
-            this.$refs.table.refresh()
+        onSuccess(){
+            this.$ajax.reload()
         }
     }
 }

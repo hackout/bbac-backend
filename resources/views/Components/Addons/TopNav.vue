@@ -1,8 +1,8 @@
 <template>
     <div class="page-block top-nav" v-if="navList.length > 0">
-        <div class="top-nav-item" :class="{current:item.current}" v-for="(item,index) in navList" :key="index" @click="$goTo(item.path)">
+        <Link class="top-nav-item" :class="{current:item.current}" v-for="(item,index) in navList" :key="index" :href="$route(item.path)">
             <span>{{ item.name }}</span>
-        </div>
+        </Link>
     </div>
 </template>
 <script>

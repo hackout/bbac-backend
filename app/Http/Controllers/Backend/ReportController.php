@@ -93,11 +93,9 @@ class ReportController extends Controller
             'report' => fn() => (new ReportService)->getProductDaily($date),
             'defect_level' => $dictService->getOptionByCode('defect_level'),
             'defect_category' => $dictService->getOptionByCode('defect_category'),
-            'eb_type' => $dictService->getOptionByCode('eb_type'),
             'engine_type' => $dictService->getOptionByCode('engine_type'),
             'purpose' => $dictService->getOptionByCode('purpose'),
-            'assembly_line' => $dictService->getOptionByCode('assembly_line'),
-            'issue_status' => $dictService->getOptionByCode('issue_status')
+            'assembly_line' => $dictService->getOptionByCode('assembly_line')
         ]);
     }
 
@@ -141,13 +139,20 @@ class ReportController extends Controller
      *
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  Request         $request
+     * @param  DictService $dictService
      * @return InertiaResponse
      */
-    public function productWeekly(Request $request): InertiaResponse
+    public function productWeekly(Request $request, DictService $dictService): InertiaResponse
     {
-        $now = Carbon::now();
+        $date = $request->get('date') ?? date('Y-m-d', strtotime('last monday'));
         return Inertia::render('Report/Product/Weekly', [
-            'date' => [$now->clone()->weekday(1)->toDateString(), $now->clone()->weekday(6)->toDateString()]
+            'date' => $date,
+            'report' => fn() => (new ReportService)->getProductWeekly($date),
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'purpose' => $dictService->getOptionByCode('purpose'),
+            'assembly_line' => $dictService->getOptionByCode('assembly_line')
         ]);
     }
 
@@ -191,11 +196,20 @@ class ReportController extends Controller
      *
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  Request         $request
+     * @param  DictService $dictService
      * @return InertiaResponse
      */
-    public function productMonthly(Request $request): InertiaResponse
+    public function productMonthly(Request $request, DictService $dictService): InertiaResponse
     {
+        $date = $request->get('date') ?? date('Y-m');
         return Inertia::render('Report/Product/Monthly', [
+            'date' => $date,
+            'report' => fn() => (new ReportService)->getProductMonthly($date),
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'purpose' => $dictService->getOptionByCode('purpose'),
+            'assembly_line' => $dictService->getOptionByCode('assembly_line')
         ]);
     }
 
@@ -218,11 +232,20 @@ class ReportController extends Controller
      *
      * @author Dennis Lui <hackout@vip.qq.com>
      * @param  Request         $request
+     * @param  DictService $dictService
      * @return InertiaResponse
      */
-    public function productYearly(Request $request): InertiaResponse
+    public function productYearly(Request $request, DictService $dictService): InertiaResponse
     {
+        $date = $request->get('date') ?? date('Y');
         return Inertia::render('Report/Product/Yearly', [
+            'date' => $date,
+            'report' => fn() => (new ReportService)->getProductYearly($date),
+            'defect_level' => $dictService->getOptionByCode('defect_level'),
+            'defect_category' => $dictService->getOptionByCode('defect_category'),
+            'engine_type' => $dictService->getOptionByCode('engine_type'),
+            'purpose' => $dictService->getOptionByCode('purpose'),
+            'assembly_line' => $dictService->getOptionByCode('assembly_line')
         ]);
     }
 

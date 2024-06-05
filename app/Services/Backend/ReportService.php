@@ -9,6 +9,7 @@ use App\Models\VehicleOutbound;
 use App\Models\IssueVehicle;
 use App\Models\IssueProduct;
 use App\Models\ExamineProduct;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * 报表数据服务
@@ -18,7 +19,14 @@ use App\Models\ExamineProduct;
 class ReportService
 {
 
-    public function getVehicleDaily(string $date)
+    /**
+     * 整车日报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getVehicleDaily(string $date):array|Collection
     {
         $date = Carbon::parse($date);
         $serviceFactories = (new DictService)->getOptionByCode('service_factory', true);
@@ -247,7 +255,14 @@ class ReportService
         return $result;
     }
 
-    public function getVehicleWeekly(string $date)
+    /**
+     * 整车周报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getVehicleWeekly(string $date):array|Collection
     {
         $startDay = Carbon::parse($date);
         $endDay = $startDay->clone()->endOfWeek();
@@ -319,7 +334,15 @@ class ReportService
             return $result;
         });
     }
-    public function getVehicleMonthly(string $date)
+
+    /**
+     * 整车月报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getVehicleMonthly(string $date):array|Collection
     {
         $startDay = Carbon::parse($date . '-01');
         $endDay = $startDay->clone()->endOfMonth();
@@ -393,8 +416,14 @@ class ReportService
     }
 
 
-
-    public function getProductDaily(string $date)
+    /**
+     * 产品日报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getProductDaily(string $date):array|Collection
     {
         $engines = (new DictService)->getOptionByCode('eb_type');
         $date = Carbon::parse($date);
@@ -419,24 +448,6 @@ class ReportService
                 'is_ok' => IssueProduct::where('product_id', $product->id)->value('is_ok') ?? false,
             ];
         }
-        $overviews[] = [
-            'number' => 'xxxxxxxxx  skadlskadnas0000',
-            'audit_progress' => 0,
-            'assembly_progress' => 30,
-            'status' => 1,
-            'defect_level' => 1,
-            'description' => 2,
-            'is_ok' => true,
-        ];
-        $overviews[] = [
-            'number' => 'xxxxxxxxx  skadlskadnas0000',
-            'audit_progress' => 0,
-            'assembly_progress' => 30,
-            'status' => 1,
-            'defect_level' => 1,
-            'description' => 2,
-            'is_ok' => false,
-        ];
         $sql = [
             ['created_at', '>=', $month],
             ['created_at', '<', $date->clone()->addDay()],
@@ -525,4 +536,411 @@ class ReportService
         ]);
         return $result;
     }
+
+    /**
+     * 产品周报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getProductWeekly(string $date):array|Collection
+    {
+        $startDay = Carbon::parse($date);
+        $endDay = $startDay->clone()->endOfWeek();
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
+        $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
+        return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
+            $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
+            $result = [
+                'name' => $eb_type['name'],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
+                'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
+                    return [
+                        'value' => $item['value'],
+                        'name' => $item['name'],
+                        'count' => $issues->where('cause_type', $item['value'])->count()
+                    ];
+                })->filter(fn($n) => $n['count'])->values(),
+                'eight' => IssueVehicle::where('created_at', '>=', $startDay)
+                    ->where('created_at', '<=', $endDay)
+                    ->orderBy('created_at', 'DESC')
+                    ->skip(0)->take(8)->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'qty' => $item->quantity,
+                            'description' => $item->description,
+                            'issue_type' => $item->type,
+                            'cause_type' => $item->cause_type
+                        ];
+                    }),
+            ];
+            return $result;
+        });
+    }
+    
+
+    /**
+     * 产品月报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getProductMonthly(string $date):array|Collection
+    {
+        $startDay = Carbon::parse($date);
+        $endDay = $startDay->clone()->endOfWeek();
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
+        $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
+        return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
+            $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
+            $result = [
+                'name' => $eb_type['name'],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
+                'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
+                    return [
+                        'value' => $item['value'],
+                        'name' => $item['name'],
+                        'count' => $issues->where('cause_type', $item['value'])->count()
+                    ];
+                })->filter(fn($n) => $n['count'])->values(),
+                'eight' => IssueVehicle::where('created_at', '>=', $startDay)
+                    ->where('created_at', '<=', $endDay)
+                    ->orderBy('created_at', 'DESC')
+                    ->skip(0)->take(8)->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'qty' => $item->quantity,
+                            'description' => $item->description,
+                            'issue_type' => $item->type,
+                            'cause_type' => $item->cause_type
+                        ];
+                    }),
+            ];
+            return $result;
+        });
+    }
+    
+
+    /**
+     * 产品年报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getProductYearly(string $date):array|Collection
+    {
+        $startDay = Carbon::parse($date);
+        $endDay = $startDay->clone()->endOfWeek();
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
+        $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
+        return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
+            $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
+            $result = [
+                'name' => $eb_type['name'],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
+                'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
+                    return [
+                        'value' => $item['value'],
+                        'name' => $item['name'],
+                        'count' => $issues->where('cause_type', $item['value'])->count()
+                    ];
+                })->filter(fn($n) => $n['count'])->values(),
+                'eight' => IssueVehicle::where('created_at', '>=', $startDay)
+                    ->where('created_at', '<=', $endDay)
+                    ->orderBy('created_at', 'DESC')
+                    ->skip(0)->take(8)->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'qty' => $item->quantity,
+                            'description' => $item->description,
+                            'issue_type' => $item->type,
+                            'cause_type' => $item->cause_type
+                        ];
+                    }),
+            ];
+            return $result;
+        });
+    }
+
+    
+
+    /**
+     * 在线月报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getInlineMonthly(string $date):array|Collection
+    {
+        $startDay = Carbon::parse($date);
+        $endDay = $startDay->clone()->endOfWeek();
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
+        $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
+        return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
+            $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
+            $result = [
+                'name' => $eb_type['name'],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
+                'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
+                    return [
+                        'value' => $item['value'],
+                        'name' => $item['name'],
+                        'count' => $issues->where('cause_type', $item['value'])->count()
+                    ];
+                })->filter(fn($n) => $n['count'])->values(),
+                'eight' => IssueVehicle::where('created_at', '>=', $startDay)
+                    ->where('created_at', '<=', $endDay)
+                    ->orderBy('created_at', 'DESC')
+                    ->skip(0)->take(8)->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'qty' => $item->quantity,
+                            'description' => $item->description,
+                            'issue_type' => $item->type,
+                            'cause_type' => $item->cause_type
+                        ];
+                    }),
+            ];
+            return $result;
+        });
+    }
+    
+
+    /**
+     * 在线年报
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string $date
+     * @return array|Collection
+     */
+    public function getInlineYearly(string $date):array|Collection
+    {
+        $startDay = Carbon::parse($date);
+        $endDay = $startDay->clone()->endOfWeek();
+        $ebTypeList = (new DictService)->getOptionByCode('eb_type', true);
+        $causeTypeList = (new DictService)->getOptionByCode('root_cause_type');
+        return $ebTypeList->map(function ($eb_type) use ($startDay, $endDay, $causeTypeList) {
+            $issues = IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<=', $endDay)->get();
+            $wList = [
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay)->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $yList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfYear())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $mList = [
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_PRE_HIGHLIGHT)->count(),
+                IssueVehicle::where('created_at', '>=', $startDay->clone()->firstOfMonth())->where('created_at', '<', $endDay)->where('issue_type', IssueVehicle::ISSUE_TYPE_INFORMATION)->count()
+            ];
+            $cwList = [];
+            $_start = $startDay->clone()->startOfYear();
+            for ($i = 0; $i < $startDay->isoWeeksInYear(); $i++) {
+                $dates = [
+                    !$i ? $_start : $_start->clone()->addDays(7 * $i)->startOfWeek()
+                ];
+                $dates[] = $dates[0]->clone()->addDays(8);
+                $cwList[] = [
+                    'name' => 'CW' . ($i + 1),
+                    'count' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->count(),
+                    'sum' => IssueVehicle::where('created_at', '>=', $dates[0])->where('created_at', '<', $dates[1])->where('is_ppm', true)->sum('quantity'),
+                ];
+            }
+            $result = [
+                'name' => $eb_type['name'],
+                'thumbnail' => $eb_type['thumbnail'],
+                'current' => $startDay->weekOfYear,
+                'w' => $wList[0] > $wList[1] ? 2 : ($wList[1] > $wList[0] ? 1 : 0),
+                'y' => $yList[0] > $yList[1] ? 2 : ($yList[1] > $yList[0] ? 1 : 0),
+                'm' => $mList[0] > $mList[1] ? 2 : ($mList[1] > $mList[0] ? 1 : 0),
+                'ay4' => VehicleOutbound::where([['daily', '>=', $startDay->clone()->startOfYear()], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'ax4' => VehicleOutbound::where([['daily', '>=', $startDay], ['daily', '<', $endDay], ['eb_type', '=', $eb_type['value']]])->sum('outbound'),
+                'bb4' => VehicleTarget::where(['yearly' => $startDay->year, 'eb_type' => $eb_type['value']])->value('target') ?? 0,
+                'ar4' => $issues->where('is_ppm', true)->count(),
+                'cwList' => $cwList,
+                'causeTypeList' => $causeTypeList->map(function ($item) use ($issues) {
+                    return [
+                        'value' => $item['value'],
+                        'name' => $item['name'],
+                        'count' => $issues->where('cause_type', $item['value'])->count()
+                    ];
+                })->filter(fn($n) => $n['count'])->values(),
+                'eight' => IssueVehicle::where('created_at', '>=', $startDay)
+                    ->where('created_at', '<=', $endDay)
+                    ->orderBy('created_at', 'DESC')
+                    ->skip(0)->take(8)->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'qty' => $item->quantity,
+                            'description' => $item->description,
+                            'issue_type' => $item->type,
+                            'cause_type' => $item->cause_type
+                        ];
+                    }),
+            ];
+            return $result;
+        });
+    }
+
+    
 }

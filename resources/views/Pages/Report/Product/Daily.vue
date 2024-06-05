@@ -435,10 +435,6 @@ import { router } from "@inertiajs/vue3"
 import ppt from "../../../../js/utils/ppt"
 export default {
     props: {
-        eb_type: {
-            type: Array,
-            default: []
-        },
         engine_type: {
             type: Array,
             default: []
@@ -456,10 +452,6 @@ export default {
             default: []
         },
         assembly_line: {
-            type: Array,
-            default: []
-        },
-        issue_status: {
             type: Array,
             default: []
         },

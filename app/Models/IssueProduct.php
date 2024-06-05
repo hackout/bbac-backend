@@ -40,6 +40,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property ?string $note 备注信息
  * @property ?string $eight_disciplines 8D
  * @property ?string $ira 责任人
+ * @property ?string $department 责任部门
+ * @property ?int $score_card Score Card
+ * @property ?string $cause 原因说明
  * @property int $status 问题状态
  * @property int $type 考核类型
  * @property bool $is_ok OK/NOK
@@ -102,6 +105,8 @@ class IssueProduct extends Model implements HasMedia
         'engine',
         'stage',
         'ira',
+        'department',
+        'score_card',
         'assembly_id',
         'product_id',
         'part_id',
@@ -110,6 +115,7 @@ class IssueProduct extends Model implements HasMedia
         'defect_part',
         'defect_position',
         'defect_cause',
+        'cause',
         'soma',
         'lama',
         'note',
@@ -131,6 +137,7 @@ class IssueProduct extends Model implements HasMedia
         'defect_cause' => 'integer',
         'status' => 'integer',
         'type' => 'integer',
+        'score_card' => 'integer',
         'is_ok' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

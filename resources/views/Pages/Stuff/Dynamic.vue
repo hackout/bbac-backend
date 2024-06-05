@@ -117,7 +117,7 @@
                             <span>预览</span><br />
                             <small>Preview</small>
                         </el-button>
-                        <el-button type="primary" size="small" @click="detailItem(scope.row)" link>
+                        <el-button type="primary" size="small" @click="viewItem(scope.row)" link>
                             <span>维护</span><br />
                             <small>Edit</small>
                         </el-button>
@@ -195,7 +195,8 @@ export default {
                 keyword: '',
                 date: ['', ''],
                 type: 1
-            }
+            },
+            DynamicDialogVisit: false
         }
     },
     mounted() {
@@ -203,10 +204,10 @@ export default {
     },
     methods: {
         viewItem(item) {
-            this.$goTo('stuff.detail', { id: item.id });
+            this.$ajax.visit(this.$route('stuff.detail', { id: item.id }))
         },
         previewItem(item) {
-            this.$goTo('stuff.preview', { id: item.id });
+            this.$ajax.visit(this.$route('stuff.preview', { id: item.id }))
         },
         async onSearch() {
             var validate = await this.$refs.query.validate().catch(() => { })
@@ -224,6 +225,16 @@ export default {
         refreshData() {
             this.editable = false
             this.$refs.table.refresh()
+        },
+        async deleteItem(item) {
+            var res = await this.$axios.delete(this.$route('stuff.delete', { id: item.id }))
+            this.deleting = false
+            if (res.code == this.$config.successCode) {
+                this.$message.success("删除成功")
+                this.refreshData()
+            } else {
+                this.$message.error(res.message)
+            }
         }
     }
 }

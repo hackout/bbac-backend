@@ -11,7 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Backend\DictService;
 use App\Services\Backend\ExamineService;
 use Inertia\Response as InertiaResponse;
-use App\Services\Backend\IssueVehicleService;
+use App\Services\Backend\IssueProductService;
 use App\Services\Backend\IssueVehicleLogService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -103,15 +103,33 @@ class StuffController extends Controller
     public function issue(Request $request, DictService $dictService): InertiaResponse
     {
         return Inertia::render('Stuff/Issue', [
+            'issue_status' => $dictService->getOptionByCode('issue_status'),
             'defect_level' => $dictService->getOptionByCode('defect_level'),
             'defect_category' => $dictService->getOptionByCode('defect_category'),
-            'task_status' => $dictService->getOptionByCode('task_status'),
-            'engine_type' => $dictService->getOptionByCode('engine_type'),
-            'examine_product_item_type' => $dictService->getOptionByCode('examine_product_item_type'),
-            'examine_type' => $dictService->getOptionByCode('examine_type'),
-            'status' => $dictService->getOptionByCode('assembly_status'),
-            'plant' => $dictService->getOptionByCode('plant'),
-            'line' => $dictService->getOptionByCode('assembly_line'),
+            'problem_parts' => $dictService->getOptionByCode('problem_parts'),
+            'question_position' => $dictService->getOptionByCode('question_position'),
+            'exactly_1' => $dictService->getOptionByCode('exactly_1'),
+            'exactly_2' => $dictService->getOptionByCode('exactly_2'),
+            'exactly_3' => $dictService->getOptionByCode('exactly_3'),
+            'exactly_4' => $dictService->getOptionByCode('exactly_4'),
+            'exactly_5' => $dictService->getOptionByCode('exactly_5'),
+            'exactly_6' => $dictService->getOptionByCode('exactly_6'),
+            'exactly_7' => $dictService->getOptionByCode('exactly_7'),
+            'exactly_8' => $dictService->getOptionByCode('exactly_8'),
+            'exactly_9' => $dictService->getOptionByCode('exactly_9'),
+            'exactly_10' => $dictService->getOptionByCode('exactly_10'),
+            'exactly_11' => $dictService->getOptionByCode('exactly_11'),
+            'exactly_12' => $dictService->getOptionByCode('exactly_12'),
+            'exactly_13' => $dictService->getOptionByCode('exactly_13'),
+            'exactly_14' => $dictService->getOptionByCode('exactly_14'),
+            'exactly_15' => $dictService->getOptionByCode('exactly_15'),
+            'exactly_16' => $dictService->getOptionByCode('exactly_16'),
+            'exactly_17' => $dictService->getOptionByCode('exactly_17'),
+            'exactly_18' => $dictService->getOptionByCode('exactly_18'),
+            'exactly_19' => $dictService->getOptionByCode('exactly_19'),
+            'exactly_20' => $dictService->getOptionByCode('exactly_20'),
+            'exactly_21' => $dictService->getOptionByCode('exactly_21'),
+            'exactly_22' => $dictService->getOptionByCode('exactly_22'),
             'users' => (new UserService())->getUserByProduct($request->user())
         ]);
     }
@@ -155,7 +173,7 @@ class StuffController extends Controller
      * @param  TaskService     $taskService
      * @return InertiaResponse
      */
-    public function detail(string $id, Request $request, DictService $dictService, TaskService $taskService): InertiaResponse
+    public function detail(string $id, Request $request, DictService $dictService, TaskService $taskService, IssueProductService $service): InertiaResponse
     {
         $rules = [
             'id' => 'exists:tasks,id,type,2',
@@ -173,6 +191,7 @@ class StuffController extends Controller
         $item = $taskService->getProductDetail($request->user(), $id);
         return Inertia::render('Stuff/Detail', [
             'item' => $item,
+            'issues' => $service->getListByProduct($request->user(), $id),
             'defect_level' => $dictService->getOptionByCode('defect_level'),
             'defect_category' => $dictService->getOptionByCode('defect_category'),
             'task_status' => $dictService->getOptionByCode('task_status'),
@@ -249,5 +268,98 @@ class StuffController extends Controller
         }
         $result = $taskService->getProductExport($request->user(), $id);
         return $this->success($result);
+    }
+
+    /**
+     * 产品考核-删除考核
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string          $id
+     * @param  Request         $request
+     * @param  TaskService     $taskService
+     * @return JsonResponse
+     */
+    public function delete(string $id, Request $request, TaskService $taskService): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:tasks,id,type,2',
+        ];
+        $messages = [
+            'id.exists' => '考核记录不存在或已删除',
+        ];
+
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return abort(500)->withMessages($validator->errors());
+        }
+        $taskService->deleteProduct($request->user(), $id);
+        return $this->success();
+    }
+
+    /**
+     * 产品考核-维护记录
+     *
+     * @author Dennis Lui <hackout@vip.qq.com>
+     * @param  string          $id
+     * @param  Request         $request
+     * @param  IssueProductService     $service
+     * @return JsonResponse
+     */
+    public function update(string $id, Request $request, IssueProductService $service): JsonResponse
+    {
+        $rules = [
+            'id' => 'exists:issue_products,id',
+            'defect_level' => 'required|integer',
+            'defect_description' => 'sometimes',
+            'defect_part' => 'sometimes',
+            'defect_position' => 'sometimes',
+            'defect_cause' => 'sometimes',
+            'soma' => 'sometimes',
+            'lama' => 'sometimes',
+            'note' => 'sometimes',
+            'cause' => 'sometimes',
+            'eight_disciplines' => 'sometimes',
+            'score_card' => 'sometimes',
+            'ira' => 'sometimes',
+            'department' => 'sometimes',
+            'status' => 'sometimes',
+            'type' => 'sometimes',
+            'file' => 'sometimes|nullable|file'
+        ];
+        $messages = [
+            'id.exists' => '考核记录不存在',
+            'defect_level.required' => '缺陷等级不能为空',
+            'defect_level.integer' => '缺陷等级不存在',
+            'file.file' => '维护记录错误',
+        ];
+
+        $validator = Validator::make(array_merge([
+            'id' => $id
+        ], $request->all()), $rules, $messages);
+        if ($validator->fails()) {
+            return abort(500)->withMessages($validator->errors());
+        }
+        $data = $validator->safe()->only([
+            'defect_description',
+            'defect_level',
+            'defect_part',
+            'defect_position',
+            'defect_cause',
+            'soma',
+            'lama',
+            'note',
+            'cause',
+            'eight_disciplines',
+            'score_card',
+            'ira',
+            'department',
+            'status',
+            'type',
+            'file'
+        ]);
+        $service->updateIssue($request->user(), $id, $data);
+        return $this->success();
     }
 }
